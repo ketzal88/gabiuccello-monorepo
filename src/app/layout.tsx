@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
+import { MetaPixel } from "@/components/meta-pixel";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${inter.variable} font-sans antialiased bg-cream-50`}>
+        <MetaPixel />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

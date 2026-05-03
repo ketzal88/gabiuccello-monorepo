@@ -88,7 +88,7 @@ function GraciasContent() {
         </p>
 
         <a
-          href="/"
+          href="/login"
           style={{
             display: 'inline-block',
             background: '#f97316',
@@ -102,7 +102,7 @@ function GraciasContent() {
             textDecoration: 'none',
           }}
         >
-          Ir a la app →
+          Entrar a la app →
         </a>
       </div>
     </div>

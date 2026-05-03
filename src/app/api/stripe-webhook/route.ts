@@ -17,6 +17,7 @@ const CAPI_TOKEN = process.env.META_CAPI_ACCESS_TOKEN;
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'hola@gabiuccello.com';
+const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 const CAPI_URL = `https://graph.facebook.com/v20.0/${PIXEL_ID}/events`;
 const SOURCE_URL = 'https://libro.gabiuccello.com/venta';
 const APP_URL = 'https://libro.gabiuccello.com';
@@ -164,7 +165,7 @@ export async function POST(req: NextRequest) {
 
       // Magic link: abre Firebase "crear contraseña" y redirige a la app
       loginLink = await adminAuth.generatePasswordResetLink(email, {
-        url: APP_URL,
+        url: `${APP_URL}/login`,
       });
     } catch (err) {
       console.error('Firebase Admin error:', err);
@@ -172,11 +173,29 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 3. Email de bienvenida con Resend ─────────────────────────────────────
-  if (email && RESEND_API_KEY) {
-    await sendPurchaseEmail(email, name, loginLink);
-  }
+  await Promise.all([
+    email && RESEND_API_KEY ? sendPurchaseEmail(email, name, loginLink) : Promise.resolve(),
+    SLACK_WEBHOOK_URL ? notifySlack({ name, email, amount: amountTotal, currency, sessionId }) : Promise.resolve(),
+  ]);
 
   return NextResponse.json({ received: true });
+}
+
+async function notifySlack({ name, email, amount, currency, sessionId }: {
+  name: string; email: string; amount: number; currency: string; sessionId: string;
+}): Promise<void> {
+  const value = (amount / 100).toFixed(2);
+  try {
+    await fetch(SLACK_WEBHOOK_URL!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: `💰 *Nueva venta — 7 Pasos*\n*$${value} ${currency}*\n👤 ${name || 'Sin nombre'} (${email})\n🔑 \`${sessionId}\``,
+      }),
+    });
+  } catch (err) {
+    console.error('Slack notify falló:', err);
+  }
 }
 
 async function sendPurchaseEmail(to: string, name: string, loginLink: string): Promise<void> {
