@@ -210,14 +210,14 @@ const step1: StepContent = {
     },
   ],
   exercise: {
-    title: 'El ejercicio del Paso 1',
+    title: 'Registro de micro-decisiones',
     description:
-      'No te voy a pedir que cambies nada todavía. Días 1 a 7: solo observá y registrá. Antes de dormir, anotá las micro-decisiones que tomaste durante el día. Las que sumaron y las que restaron. No te juzgues, no cambies nada. Solo mirá. De ese registro, elegí 4 micro-decisiones negativas que se repitan y que sepas que podés cambiar. No las más difíciles, las más fáciles.',
+      'Días 1 a 14: solo observá. Anotá tres micro-decisiones por noche. No cambies nada todavía, solo registrá.',
     weeks: [
-      'Días 1-7: Solo observá y registrá. Al cabo de una semana vas a tener un mapa claro de cómo vivís en realidad, no de cómo creés que vivís. Elegí 4 micro-decisiones negativas concretas para cambiar.',
-      'Días 8-28: Durante 21 días seguidos, ejecutás esos 4 cambios. Todos los días. Sin negociar.',
-      'Día 28 — Hacé la cuenta: medio kilo de azúcar menos, 2-3 libros leídos, 7 horas de movimiento acumuladas, 420 minutos de amor repartidos donde más importaban.',
-      'Imaginá 7 micro-decisiones. Imaginá 12. Imaginá 21. Imaginá 180 días. Imaginá un año completo. Imaginá el resto de tu vida. Todo cuenta.',
+      'Días 1 a 14: Solo observá. Anotá tres micro-decisiones por noche. No cambies nada todavía, solo registrá.',
+      'Días 15 a 30: Buscá patrones. ¿Qué se repite? ¿Cuáles te suman y cuáles te restan? Sin juzgarte.',
+      'Días 31 a 60: Reemplazá UNA micro-decisión negativa por una positiva. Una sola. Sostenela.',
+      'Días 61 a 90: Agregá una segunda. Para este momento, la primera ya debería estar casi en piloto automático.',
     ],
   },
   closingQuote:
@@ -394,14 +394,14 @@ const step2: StepContent = {
     },
   ],
   exercise: {
-    title: 'El ejercicio del Paso 2',
+    title: 'Escribí tus 10 objetivos',
     description:
-      'Hoy escribís tus diez objetivos. Específicos, posibles, medibles, en presente, para 180 días. No los pienses demasiado. El primer borrador no tiene que ser perfecto.',
+      'Días 1 a 7: Escribilos. No importa si no son perfectos, primero bajalos al papel.',
     weeks: [
-      'Hoy: Escribí tus 10 objetivos. Específicos, posibles, medibles, en presente, para 180 días.',
-      'Esta semana: Los leés en voz alta cada mañana. Todos los días. Sin excepciones.',
-      'Fin de la primera semana: Revisás si son específicos de verdad. ¿Podés saber con certeza si los estás cumpliendo o no? Si la respuesta no es clara, reescribís hasta que lo sea.',
-      'De ahí en adelante: Los leés cada mañana y al final del día te hacés una sola pregunta: ¿las decisiones que tomé hoy me acercaron o me alejaron de mis objetivos?',
+      'Días 1 a 7: Escribilos. No importa si no son perfectos, primero bajalos al papel.',
+      'Días 8 a 14: Revisalos con las cinco reglas. ¿Específicos? ¿Medibles? ¿En presente? Ajustalos.',
+      'Días 15 a 30: Leelos en voz alta cada mañana. Sí, en voz alta. Tu cerebro escucha tu propia voz distinto.',
+      'Días 31 a 180: Seguí leyéndolos cada mañana. Marcá progreso cada 30 días. Celebrá lo avanzado, ajustá lo que quedó atrás.',
     ],
   },
   closingQuote:
@@ -530,12 +530,12 @@ const step3: StepContent = {
   exercise: {
     title: 'Auditoría de entorno',
     description:
-      'Hacé una lista de las 10 personas con las que más tiempo pasás. Al lado de cada una escribí una sola palabra: ¿empuja o frena? No lo pienses demasiado. La primera respuesta que te sale es la verdadera.',
+      'Días 1 a 7: Hacé una lista de las diez personas con las que más tiempo pasás. Clasificá cada una: ¿empuja o frena?',
     weeks: [
-      'Días 1 a 7: Hacé la lista de 10 personas. Clasificalas: empuja o frena. Después mirá los números: la proporción es una fotografía de por qué tu vida está donde está hoy.',
-      'Días 8 a 21: Observá las conversaciones de tu entorno. ¿Cuántas veces escuchás "no se puede", "para qué", "eso no funciona"? Solo registralo.',
-      'Días 22 a 28: Buscá un espacio nuevo con gente alineada a tus objetivos. Un grupo de running, un club de lectura, una comunidad online. No tiene que ser perfecto. Tiene que ser un primer paso.',
-      'De ahí en adelante: Más tiempo con los que empujan. Menos con los que frenan. Sin dramatismo, sin discursos, sin peleas. Solo redirigí tu energía.',
+      'Días 1 a 7: Hacé una lista de las diez personas con las que más tiempo pasás. Clasificá cada una: ¿empuja o frena?',
+      'Días 8 a 14: Observá sin actuar. ¿Cuánto tiempo pasás con cada grupo? ¿Te das cuenta del desbalance?',
+      'Días 15 a 30: Aumentá el tiempo con los que empujan. Buscá una comunidad nueva que esté alineada con lo que querés.',
+      'Días 31 a 180: Reducí gradualmente el tiempo con los que frenan. Sin cortar de golpe, sin explicaciones largas. Con tu agenda.',
     ],
   },
   closingQuote:
@@ -654,12 +654,12 @@ const step4: StepContent = {
   exercise: {
     title: 'Reprogramá cómo te hablás',
     description:
-      'Durante el día, prestá atención cada vez que te digas algo negativo. Registralo. Después, reformulalo en positivo. Al final, incorporá el mantra matutino.',
+      'Días 1 a 14: Registrá cada frase negativa que te decís. No las juzgues, solo anotalas. Vas a sorprenderte de cuántas son.',
     weeks: [
-      'Días 1 a 7: Registrá cada vez que te decís "yo no puedo", "yo no sé", "yo no sirvo". No cambies nada todavía. Solo contá cuántas veces aparece.',
-      'Días 8 a 21: Cada vez que aparezca un negativo, lo reformulás en el momento. "Yo no puedo" se convierte en "todavía estoy aprendiendo". No tiene que ser perfecto. Tiene que ser distinto.',
-      'Días 22 a 28: Sumás el mantra matutino. Todos los días, antes de abrir el teléfono: "Yo amo a mi persona. Qué feliz que soy. Me encanta lo que tengo. Yo soy responsable." Treinta segundos. Sin excepciones.',
-      'De ahí en adelante: El mantra se queda. Para siempre.',
+      'Días 1 a 14: Registrá cada frase negativa que te decís. No las juzgues, solo anotalas. Vas a sorprenderte de cuántas son.',
+      'Días 15 a 30: Reescribí cada una en positivo. "No puedo" se convierte en "estoy aprendiendo". "Soy un desastre" en "estoy mejorando".',
+      'Días 31 a 60: Corregite en el momento. Cuando te escuches diciendo una frase negativa, frenala y repetila en positivo. En voz alta si podés.',
+      'Días 61 a 180: Mantra matutino todos los días. Tres frases positivas en voz alta antes de mirar el celular. Todos los días.',
     ],
   },
   closingQuote:
@@ -774,11 +774,12 @@ const step5: StepContent = {
   exercise: {
     title: 'Elegí UNA batalla diaria',
     description:
-      'Elegí UNA sola micro-decisión diaria y comprometete a ganarla todos los días. No dos, no tres. UNA. Cuando esa ya sea automática, agregá otra.',
+      'Días 1 a 21: Elegí UNA sola micro-decisión. Una. Y ganala todos los días. Sin excepciones. Sin drama. Una.',
     weeks: [
-      'Días 1 a 21: Elegí UNA sola batalla. Un momento del día donde sabés que fallás sistemáticamente y decidís ganarla. El azúcar en el café, la gaseosa del mediodía, el scroll antes de dormir. Solo una. Todos los días. Sin negociar.',
-      'Días 22 a 42: Si ganaste la primera batalla 21 días seguidos, ya es hábito. Ahora sumás una segunda. Solo una más.',
-      'Días 43 en adelante: Con dos hábitos instalados, el músculo ya está más fuerte. Cada nueva batalla va a costar menos que la anterior. Al final de los 180 días, tenés entre 4 y 6 hábitos nuevos instalados. Permanentemente.',
+      'Días 1 a 21: Elegí UNA sola micro-decisión. Una. Y ganala todos los días. Sin excepciones. Sin drama. Una.',
+      'Días 22 a 45: Si la ganaste 21 días seguidos, ya es hábito. Agregá una segunda. Pero la primera la seguís sosteniendo.',
+      'Días 46 a 90: Dos batallas activas. Vas a ver que la primera ya ni la pensás. La segunda todavía cuesta. Es normal.',
+      'Días 91 a 180: Agregá la tercera. Al final de los 180 días, vas a tener tres hábitos nuevos sólidos. No diez. Tres. Y con tres bien puestos, tu vida es otra.',
     ],
   },
   closingQuote:
@@ -914,13 +915,14 @@ const step6: StepContent = {
     },
   ],
   exercise: {
-    title: 'Registro + 1 cambio',
+    title: 'Registro + un cambio',
     description:
-      'Anotá todo lo que comés, cuánto dormís y cuánto te movés. Sin juzgar. Solo observar. Al final de la primera semana vas a tener un mapa claro de dónde están las fugas.',
+      'Días 1 a 14: Registrá. Qué comés, cómo dormís, cuánto te movés. Solo observá, no cambies nada todavía.',
     weeks: [
-      'Días 1 a 7: Anotá todo lo que comés, cuánto dormís y cuánto te movés. Sin juzgar. Solo observá. Al final tenés un mapa claro de dónde están las fugas.',
-      'Días 8 a 28: Sacás UNA cosa mala de ese mapa y sumás UNA cosa buena. Solo una de cada. Sostenelas 21 días.',
-      'Días 29 en adelante: Con ese primer cambio instalado, sumás uno más. Y después otro. Al final de los 180 días, tu cuerpo no va a ser el mismo.',
+      'Días 1 a 14: Registrá. Qué comés, cómo dormís, cuánto te movés. Solo observá, no cambies nada todavía.',
+      'Días 15 a 30: Eliminá UNA sola cosa mala. La más fácil para vos. La que te cueste menos sacar. Una.',
+      'Días 31 a 60: Agregá UNA cosa buena. Una. Caminata diaria, vaso de agua al despertarte, verdura en el almuerzo. La que sea.',
+      'Días 61 a 180: Evaluá cada 30 días. Si las primeras dos ya son hábito, agregá una tercera. Si no, sosten. No aceleres de más.',
     ],
   },
   closingQuote:
@@ -1056,12 +1058,12 @@ const step7: StepContent = {
   exercise: {
     title: 'Limpiá tu relación con el mundo',
     description:
-      'Después de cada interacción importante preguntate una sola cosa: ¿me sumó o me restó? Después practicá ser Suiza, elegí soltar una bronca, y reorganizá a quién le das más energía.',
+      'Días 1 a 14: Hacé una lista de resentimientos pendientes, conflictos viejos, gente que te ocupa espacio mental. Verlo claro es el primer paso.',
     weeks: [
-      'Días 1 a 7: Después de cada interacción importante preguntate: ¿me sumó o me restó? No juzgues, no actúes todavía. Solo observá cuánta energía te está costando el mundo que te rodea.',
-      'Días 8 a 21: Practicá ser Suiza. Una situación por día donde no reaccionás. Alguien te pica. No mordés. Lo registrás y seguís. Al principio cuesta. A los 21 días empieza a ser automático.',
-      'Días 22 a 28: Elegí UNA cosa que estés guardando adentro, una bronca, un resentimiento, algo que te pesa, y empezá a soltarla. Es un proceso interno. Decidís que ya no te va a restar más energía.',
-      'De ahí en adelante: Hacé la lista de las cinco personas a las que más energía le das. ¿Están en el orden correcto? ¿Tu familia está primero? Si no, ese es tu próximo trabajo.',
+      'Días 1 a 14: Hacé una lista de resentimientos pendientes, conflictos viejos, gente que te ocupa espacio mental. Verlo claro es el primer paso.',
+      'Días 15 a 30: Elegí uno. Uno solo. Y perdonalo adentro tuyo. Sin avisar, sin llamar. Soltalo. Es un acto interno.',
+      'Días 31 a 60: Practicá ser Suiza. Cuando te inviten a un drama (propio o ajeno), no entres. Respondé con silencio o cambio de tema.',
+      'Días 61 a 180: Invertí la energía que ahorraste en tu familia y en las relaciones que te nutren. Tiempo de calidad, presencia real, conversaciones verdaderas.',
     ],
   },
   closingQuote:
@@ -1110,162 +1112,148 @@ export interface BookPage {
 
 export const introContent: BookPage = {
   title: 'Antes de empezar',
-  subtitle: 'Este no es un libro de autoayuda',
+  subtitle: 'Un programa de 180 días construido en micro-decisiones',
   icon: '🔥',
   sections: [
     {
       type: 'paragraph',
       content:
-        'Este no es un libro de autoayuda. No te voy a decir que visualices tu mejor versión. No te voy a pedir que repitas mantras frente al espejo ni que hagas un vision board. No te voy a prometer que en 30 días vas a tener la vida que siempre quisiste.',
+        'Si estás leyendo esto es porque en algún lugar adentro tuyo sentís que algo tiene que cambiar. No hace falta que sea un quilombo total, puede ser una molestia chiquita, una sensación de que algo no está del todo bien. Esa sensación es el principio.',
     },
     {
       type: 'paragraph',
       content:
-        'Este es un libro de matemática. De decisiones pequeñas que se acumulan. De hábitos que se construyen de a uno. De un cerebro que aprende a funcionar distinto cuando le das las instrucciones correctas. Y de vos. De la única persona que puede cambiar tu vida.',
+        'Este libro no te promete magia. No hay un secreto que no sepas. Todo lo que vas a leer acá, en el fondo, ya lo sabés. Lo que quizás no tenés todavía es el orden, el sistema, la forma de aplicarlo todos los días. De eso va esto.',
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Son siete pasos. No son siete técnicas sueltas, son un sistema. Funciona cuando los aplicás juntos, sostenidos en el tiempo. El tiempo que propone el libro son 180 días: seis meses. Ni una semana ni cinco años. Seis meses, porque es el tiempo que tu cuerpo y tu cerebro necesitan para cambiar de verdad.',
     },
     {
       type: 'heading',
-      content: 'Por qué escribí esto',
+      content: 'Cómo leer este libro',
     },
     {
       type: 'paragraph',
       content:
-        'Hubo un momento en mi vida en que me di cuenta de que estaba viviendo en piloto automático. Hacía las mismas cosas todos los días, tomaba las mismas decisiones, me decía las mismas cosas a mí mismo, y después me preguntaba por qué los resultados siempre eran los mismos.',
-    },
-    {
-      type: 'paragraph',
-      content:
-        'No era malo. No era infeliz. Pero tampoco estaba construyendo nada. Estaba dejando que la vida pasara en vez de elegirla. Lo que cambió todo no fue una gran revelación. Fue entender algo que parece obvio pero que nadie te lo dice así de directo: cada decisión que tomás todos los días, por pequeña que sea, te está llevando a algún lado. Y si no elegís adónde, te lleva igual.',
-    },
-    {
-      type: 'paragraph',
-      content:
-        'Empecé a leer. A estudiar. A probar. A fallar y a volver a probar. Y fui armando, de a poco, un sistema. No el sistema perfecto. El que a mí me funcionó. El que vi funcionar en otras personas. El que tiene respaldo en décadas de investigación sobre cómo funciona el cerebro humano cuando decide cambiar. Este libro es ese sistema.',
-    },
-    {
-      type: 'heading',
-      content: 'Cómo está organizado',
+        'Al final de cada paso vas a encontrar un ejercicio concreto, con días. Hacelo. Los que leen los libros sin hacer los ejercicios, al mes no se acuerdan de lo que leyeron. Los que aplican, cambian.',
     },
     {
       type: 'list',
-      content: 'Son 7 pasos. Cada uno construye sobre el anterior. Son una escalera, y la escalera se sube de abajo para arriba:',
+      content: 'Los siete pasos:',
       items: [
-        'Paso 1 — Todo Cuenta: El fundamento de todo. Cada micro-decisión importa.',
-        'Paso 2 — Objetivos: Sin dirección, las micro-decisiones no tienen destino.',
-        'Paso 3 — Tu Entorno: Las personas que te rodean determinan más de lo que creés.',
-        'Paso 4 — Autopercepción: Cómo te hablás define lo que sos capaz de hacer.',
-        'Paso 5 — Disciplina: El músculo que sostiene todo lo demás.',
-        'Paso 6 — Tu Cuerpo: La máquina que ejecuta todos los pasos anteriores.',
-        'Paso 7 — Tu Relación con el Mundo: El escenario donde todo se juega.',
+        'Paso 1 — Todo Cuenta: Cada micro-decisión define tu vida.',
+        'Paso 2 — Objetivos: Definí 10 objetivos concretos para 180 días.',
+        'Paso 3 — Tu Entorno: Tu entorno define tus resultados.',
+        'Paso 4 — Autopercepción: Cómo te hablás a vos mismo lo cambia todo.',
+        'Paso 5 — Disciplina: El paso más difícil y el más importante.',
+        'Paso 6 — Tu Cuerpo: Tu cuerpo es la suma de todo.',
+        'Paso 7 — Tu Relación con el Mundo: Todo es personal, hasta el perdón.',
       ],
     },
     {
-      type: 'heading',
-      content: 'Una sola regla antes de arrancar',
-    },
-    {
       type: 'paragraph',
       content:
-        'No leas esto de corrido para terminar el libro. Leé un paso. Hacé el ejercicio. Viví con eso unos días. Después seguí. Este libro no te cambia la vida porque lo leíste. Te cambia la vida porque lo aplicás. Y la única forma de aplicarlo es de a uno, despacio, con honestidad.',
-    },
-    {
-      type: 'paragraph',
-      content:
-        'Los 180 días empiezan cuando vos decidís que empiezan. Pueden empezar hoy.',
+        'Eso es todo. Nos vemos en el otro lado.',
     },
   ],
   closingQuote:
-    'La vida que querés no está esperando que la encuentres. Está esperando que la construyas, una decisión a la vez.',
+    'Todo lo que vas a leer acá, en el fondo, ya lo sabés. Lo que quizás no tenés todavía es el orden, el sistema, la forma de aplicarlo todos los días.',
 };
 
 // =============================================================================
-// CIERRE - Tus 180 días empiezan hoy
+// CIERRE - Para cerrar (Nota del autor)
 // =============================================================================
 
 export const cierreContent: BookPage = {
-  title: 'Tus 180 días empiezan hoy',
-  subtitle: 'Llegaste al final del libro. Pero esto no es un final.',
-  icon: '🎯',
+  title: 'Para cerrar',
+  subtitle: 'Nota del autor',
+  icon: '💡',
   sections: [
     {
       type: 'paragraph',
       content:
-        'Llegaste al final del libro. Pero esto no es un final. Es el principio. Lo que acabás de leer son 7 pasos. Siete ideas que por separado ya tienen peso, pero que juntas forman algo distinto. Un sistema. Y como todo sistema, funciona cuando lo aplicás completo, todos los días, un paso a la vez.',
-    },
-    {
-      type: 'heading',
-      content: 'Lo que tenés ahora que antes no tenías',
-    },
-    {
-      type: 'list',
-      content: 'En este momento tenés:',
-      items: [
-        'Un marco para entender tus decisiones.',
-        '10 objetivos escritos en presente.',
-        'Una auditoría de tu entorno.',
-        'Un mantra que empieza tu día.',
-        'El hábito de la disciplina creciendo.',
-        'Un cuerpo que empieza a recibir mejores insumos.',
-        'Una relación más limpia con el mundo que te rodea.',
-      ],
-    },
-    {
-      type: 'paragraph',
-      content: 'Eso no es poco. Eso es todo.',
-    },
-    {
-      type: 'heading',
-      content: 'La única pregunta que importa',
+        'Antes de cerrar, quiero dejarte una pregunta. Pensala bien antes de contestarme.',
     },
     {
       type: 'paragraph',
       content:
-        'Cada mañana, cuando te levantés, hacé una sola pregunta: ¿las decisiones que voy a tomar hoy me acercan o me alejan de la persona que quiero ser? No hace falta que sean perfectas. No hace falta que sean heroicas. Solo hace falta que la mayoría apunten en la dirección correcta. Eso, repetido 180 días, cambia una vida.',
-    },
-    {
-      type: 'heading',
-      content: 'Lo que pasa en 180 días',
+        'Si yo te ofreciera, ahora mismo, diez millones de dólares, ¿los aceptarías?',
     },
     {
       type: 'paragraph',
       content:
-        'En 180 días, cada célula de tu cuerpo se renueva. No es metáfora. Es biología. En 180 días, el cuerpo que tenés hoy ya no es el mismo cuerpo. La pregunta es con qué materiales lo construiste.',
-    },
-    {
-      type: 'list',
-      content: 'En 180 días de micro-decisiones consistentes:',
-      items: [
-        'Instalaste entre 4 y 6 hábitos nuevos que antes no tenías.',
-        'Leíste entre 8 y 12 libros que antes no hubieran pasado.',
-        'Acumulás 60 horas de movimiento que no hubieran existido.',
-        'Le diste a tu cerebro 180 noches de buenos últimos minutos.',
-        'Le dijiste a tu subconsciente, todos los días, quién sos y hacia dónde vas.',
-        'Soltaste algo que te pesaba. Perdonaste algo que te costaba. Elegiste tu paz sobre tu ego.',
-      ],
-    },
-    {
-      type: 'paragraph',
-      content: 'Eso no es un cambio de vida. Eso es una vida distinta.',
-    },
-    {
-      type: 'heading',
-      content: 'Cuando llegues al día 180',
+        'Pará. No respondas tan rápido. Pensalo de verdad. Diez millones. En tu mano. Hoy.',
     },
     {
       type: 'paragraph',
       content:
-        'Vas a mirar para atrás y no vas a poder creer que la persona que eras hace seis meses tomaba las decisiones que tomaba. No porque seas otro. Sino porque finalmente sos vos. Y ahí vas a empezar 180 días más.',
+        'Seguro que sí. Todo el mundo que escucha esta pregunta dice que sí. Es imposible decir que no.',
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Pero ahora viene la segunda parte. ¿Sabés qué tenés que dar a cambio?',
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Mañana no te despertás. Eso es todo. Te llevás los diez millones, pero hoy es tu último día. No hay nada más después.',
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Y ahí, todo el mundo, sin excepción, te dice que no. Nadie acepta. Diez millones, y nadie acepta.',
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Frenate acá. Leelo de nuevo si hace falta. Porque lo que acabás de descubrir, sin darte cuenta, es lo más importante de este libro.',
     },
     {
       type: 'quote',
-      content:
-        'No es lo que hacés una vez lo que define tu vida. Es lo que hacés todos los días, en lo pequeño, cuando nadie te ve. Eso sos vos. Y eso puede cambiar hoy.',
+      content: 'Tu día de mañana vale más de diez millones de dólares.',
     },
     {
       type: 'paragraph',
-      content: 'Todo cuenta. Empezá.',
+      content:
+        'Y si mañana vale diez millones, hagamos la cuenta bien hecha. Cada tramo de tu día de mañana tiene un valor concreto, medible, real:',
+    },
+    {
+      type: 'list',
+      content: 'El valor de tu tiempo:',
+      items: [
+        'Cada cuarto de día (6 horas): USD 2.500.000',
+        'Cada hora: USD 416.666',
+        'Cada minuto: USD 6.944',
+        'Cada segundo: USD 115',
+      ],
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Leelo de nuevo. Cada segundo que pasa vale ciento quince dólares. Cada minuto que dejás pasar scrolleando sin sentido, casi siete mil. Cada hora tirada, casi medio millón.',
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Y sin embargo los regalamos. Todos los días. Sin darnos cuenta.',
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Pensalo cada vez que estés por tomar una decisión chiquita. Cada vez que dudes entre levantarte o quedarte. Entre leer o scrollear. Entre tomar agua o gaseosa. Entre llamar a tu vieja o dejarlo para después.',
+    },
+    {
+      type: 'paragraph',
+      content:
+        'Esas decisiones, las que hacés sin pensar, son parte de los diez millones de dólares que recibís gratis, todos los días, cada vez que abrís los ojos.',
+    },
+    {
+      type: 'quote',
+      content: 'No las regales.',
     },
   ],
-  closingQuote:
-    'No es lo que hacés una vez lo que define tu vida. Es lo que hacés todos los días, en lo pequeño, cuando nadie te ve. Eso sos vos. Y eso puede cambiar hoy.',
+  closingQuote: 'Los 180 días empiezan el día que vos decidís. Que sea hoy.',
 };

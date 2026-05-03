@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Interactivo: 7 Pasos para Cambiar tu Vida</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Slate Gray, Off-White, and Energetic Orange -->
+    <!-- Application Structure Plan: Se eligió una arquitectura de "Dashboard de Control" con navegación lateral (o inferior en móviles) dividida en 4 ejes: 1. Resumen de Impacto (para dimensionar el valor del tiempo), 2. El Sistema (exploración interactiva de los 7 pasos, su ciencia y referencias), 3. Estrategia Comercial (Avatares y tácticas de Meta Ads), y 4. FAQ y Defensa (críticas y objeciones). Esta estructura permite a un analista o inversor entender el producto no solo como un libro, sino como un sistema respaldado por ciencia y empujado por un embudo de conversión validado. -->
+    <!-- Visualization & Content Choices: 1. Gráfico de Barras: Muestra el valor monetario del tiempo según el libro para generar shock visual (Goal: Informar/Cambiar). 2. Gráfico de Líneas: Compara el mito de los 21 días vs los 66-90 días reales de formación de hábitos (Goal: Comparar/Educar). 3. Gráfico de Dona: Distribución de Avatares comerciales (Goal: Organizar). 4. Navegación en Pestañas y Acordeones para texto denso de FAQ (Goal: Organizar/Simplificar). Se usa Vanilla JS y Chart.js respetando la restricción de NO SVG. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: #f8fafc; color: #0f172a; }
+        
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 300px; 
+            max-height: 400px; 
+        }
+        
+        @media (min-width: 768px) { 
+            .chart-container { height: 350px; } 
+        }
+
+        .nav-item { cursor: pointer; transition: all 0.2s ease; border-left: 4px solid transparent; }
+        .nav-item:hover:not(.nav-active) { background-color: #f1f5f9; border-left: 4px solid #cbd5e1; }
+        .nav-active { background-color: #fff7ed; color: #ea580c; border-left: 4px solid #ea580c; font-weight: 600; }
+        
+        .step-item { cursor: pointer; transition: all 0.2s ease; }
+        .step-active { background-color: #ea580c; color: white; font-weight: bold; border-color: #ea580c; }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <nav class="w-full md:w-64 bg-white shadow-lg z-10 flex flex-col md:h-screen sticky top-0">
+        <div class="p-6 border-b border-slate-100">
+            <h1 class="text-2xl font-black text-slate-800 leading-tight">7 PASOS <br><span class="text-orange-600 text-lg">Para Cambiar Tu Vida</span></h1>
+            <p class="text-xs text-slate-500 mt-2 uppercase tracking-wider font-semibold">Dashboard Estratégico</p>
+        </div>
+        <div class="flex flex-row md:flex-col overflow-x-auto md:overflow-visible py-2 md:py-4">
+            <div class="nav-item nav-active px-6 py-4 flex-shrink-0 flex items-center gap-3" data-target="tab-resumen">
+                <span class="text-xl">📊</span> Resumen y Datos
+            </div>
+            <div class="nav-item px-6 py-4 flex-shrink-0 flex items-center gap-3" data-target="tab-sistema">
+                <span class="text-xl">🧠</span> El Sistema
+            </div>
+            <div class="nav-item px-6 py-4 flex-shrink-0 flex items-center gap-3" data-target="tab-marketing">
+                <span class="text-xl">🎯</span> Meta Ads & SLO
+            </div>
+            <div class="nav-item px-6 py-4 flex-shrink-0 flex items-center gap-3" data-target="tab-faq">
+                <span class="text-xl">🛡️</span> Defensa & FAQ
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 p-6 md:p-10 overflow-y-auto w-full">
+
+        <section id="tab-resumen" class="tab-content active max-w-6xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-3">El Costo de la Procrastinación</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">Esta sección expone el núcleo conceptual del libro: el valor monetario y biológico del tiempo. Aquí visualizamos los datos crudos que fundamentan la necesidad de un sistema de 180 días. El objetivo es generar un shock de conciencia en el usuario, mostrándole que el tiempo regalado tiene un precio cuantificable y que la formación de hábitos no ocurre por arte de magia en 21 días, sino a través de la ciencia comprobada de la repetición constante.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">El Valor de tu Día</h3>
+                    <p class="text-sm text-slate-500 mb-6">Si mañana no despertaras, ¿aceptarías $10 millones hoy? Costo de oportunidad temporal.</p>
+                    <div class="chart-container">
+                        <canvas id="valorTiempoChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">La Realidad de los Hábitos</h3>
+                    <p class="text-sm text-slate-500 mb-6">Mito de 21 días vs. Curva de automatización de Phillippa Lally (UCL).</p>
+                    <div class="chart-container">
+                        <canvas id="habitosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-2xl">
+                <h4 class="font-bold text-orange-800 text-lg mb-2">La Premisa de los 180 Días</h4>
+                <p class="text-orange-700">Seis meses es el tiempo biológico y psicológico necesario para renovar patrones de sueño, microbiota y consolidar 2-3 hábitos fuertes. Es una meta alcanzable pero realista, alejada del "neoliberalismo espiritual" o las soluciones mágicas de 7 días.</p>
+            </div>
+        </section>
+
+        <section id="tab-sistema" class="tab-content max-w-6xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-3">Arquitectura del Sistema</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">El programa de transformación no es un conjunto de consejos aislados, sino un mecanismo de engranajes secuenciales. En esta sección exploramos la anatomía de cada uno de los 7 pasos. Podrás interactuar con cada fase para descubrir su propósito práctico, la evidencia científica (basada en estudios de consolidación de memoria, neuroplasticidad y salud) y las referencias intelectuales (desde Brian Tracy hasta los Estoicos) que validan la metodología propuesta.</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <div class="w-full lg:w-1/3 flex flex-col gap-3" id="step-selector">
+                </div>
+
+                <div class="w-full lg:w-2/3 bg-white p-8 rounded-2xl shadow-sm border border-slate-100 min-h-[400px]">
+                    <div id="step-content" class="h-full flex flex-col">
+                        <div class="text-center text-slate-400 mt-20">
+                            <span class="text-5xl mb-4 block">👆</span>
+                            <p class="text-lg">Selecciona un paso a la izquierda para ver su ciencia, bases y funcionamiento.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-marketing" class="tab-content max-w-6xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-3">Estrategia Meta Ads (Andromeda 2026)</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">Para comercializar el libro como una oferta autoliquidable (SLO) de $9 USD, hemos diseñado un embudo optimizado para el algoritmo Andromeda de Meta. Esta sección desglosa la inteligencia detrás de las campañas: los 3 avatares psicológicos basados en Steven Reiss, la matriz de diversificación creativa para alimentar el machine learning, y el enfoque "Faceless" que permite escalar en LATAM sin saturar la figura del autor.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-t-4 border-slate-100 border-t-blue-500">
+                    <div class="text-3xl mb-3">👔</div>
+                    <h3 class="font-bold text-slate-800 text-lg">El Ejecutor</h3>
+                    <p class="text-xs font-bold text-blue-600 uppercase mb-3">Deseo: Estatus</p>
+                    <p class="text-sm text-slate-600">Profesional estancado. Busca la ventaja competitiva. El ángulo de dolor es el desperdicio de su potencial. Se le vende "alto rendimiento".</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-t-4 border-slate-100 border-t-emerald-500">
+                    <div class="text-3xl mb-3">🤯</div>
+                    <h3 class="font-bold text-slate-800 text-lg">La Abrumada</h3>
+                    <p class="text-xs font-bold text-emerald-600 uppercase mb-3">Deseo: Tranquilidad</p>
+                    <p class="text-sm text-slate-600">Sobrecargada de libros sin aplicar. Busca un sistema cerrado que le diga qué hacer sin pensar. Se le vende "orden y paz mental".</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-t-4 border-slate-100 border-t-purple-500">
+                    <div class="text-3xl mb-3">🔥</div>
+                    <h3 class="font-bold text-slate-800 text-lg">El Responsable</h3>
+                    <p class="text-xs font-bold text-purple-600 uppercase mb-3">Deseo: Independencia</p>
+                    <p class="text-sm text-slate-600">Cansado de culpar al entorno. Quiere el control total ("Plan Fénix"). Se le vende "agencia y responsabilidad radical".</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Matriz de Conciencia (Andromeda)</h3>
+                    <p class="text-sm text-slate-500 mb-4">Hooks de alto impacto (Hook Rate) para retención en 3 segundos.</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-slate-600">
+                            <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+                                <tr>
+                                    <th class="px-4 py-3">Etapa</th>
+                                    <th class="px-4 py-3">Hook Ejemplo (15s Reel)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="px-4 py-3 font-bold">Inconsciente</td>
+                                    <td class="px-4 py-3">"Si te ofreciera $10M a cambio de no despertar, ¿aceptarías?"</td>
+                                </tr>
+                                <tr class="border-b bg-slate-50">
+                                    <td class="px-4 py-3 font-bold">Problema</td>
+                                    <td class="px-4 py-3">"¿Cuántos libros de productividad tenés que nunca aplicaste?"</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="px-4 py-3 font-bold">Solución</td>
+                                    <td class="px-4 py-3">"El secreto no es fuerza de voluntad, es arquitectura de entorno."</td>
+                                </tr>
+                                <tr class="border-b bg-slate-50">
+                                    <td class="px-4 py-3 font-bold">Decisión</td>
+                                    <td class="px-4 py-3">"En 6 meses podés ser alguien irreconocible. Empezá por $9."</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Distribución de Audiencia Esperada</h3>
+                    <p class="text-sm text-slate-500 mb-6">Basado en segmentación Broad para Meta Ads.</p>
+                    <div class="chart-container">
+                        <canvas id="audienceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-faq" class="tab-content max-w-6xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-3">Defensa, FAQ y Críticas</h2>
+                <p class="text-slate-600 text-lg leading-relaxed">Ningún sistema sólido sobrevive sin enfrentar la crítica. Esta sección funciona como el blindaje intelectual del producto. Aborda preguntas comunes de los lectores, resuelve fricciones comerciales y, de manera crucial, enfrenta las críticas académicas y sociales más duras al género de la autoayuda (como el sesgo del superviviente o el neoliberalismo espiritual). La honestidad y el reconocimiento de matices son la mayor fortaleza de ventas.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-2" id="accordion-container">
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(nav => nav.classList.remove('nav-active'));
+                item.classList.add('nav-active');
+                
+                const targetId = item.getAttribute('data-target');
+                tabContents.forEach(tab => {
+                    tab.classList.remove('active');
+                    if(tab.id === targetId) {
+                        tab.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        const ctxValor = document.getElementById('valorTiempoChart').getContext('2d');
+        new Chart(ctxValor, {
+            type: 'bar',
+            data: {
+                labels: ['Día (6hs util)', '1 Hora', '1 Minuto', '1 Segundo'],
+                datasets: [{
+                    label: 'Valor Monetario Equivalente (USD)',
+                    data: [2500000, 416666, 6944, 115],
+                    backgroundColor: ['#ea580c', '#f97316', '#fb923c', '#fdba74'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, type: 'logarithmic', ticks: { callback: function(value) { return '$' + value.toLocaleString(); } } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: function(context) { return '$' + context.parsed.y.toLocaleString(); } } }
+                }
+            }
+        });
+
+        const ctxHabitos = document.getElementById('habitosChart').getContext('2d');
+        new Chart(ctxHabitos, {
+            type: 'line',
+            data: {
+                labels: ['Día 0', 'Día 21', 'Día 66', 'Día 90', 'Día 180'],
+                datasets: [
+                    {
+                        label: 'Realidad Científica (Lally)',
+                        data: [0, 30, 85, 95, 100],
+                        borderColor: '#ea580c',
+                        backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'El Mito (Autoayuda Mágica)',
+                        data: [0, 100, 100, 100, 100],
+                        borderColor: '#94a3b8',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 110, title: { display: true, text: '% de Automatización' } }
+                }
+            }
+        });
+
+        const ctxAudience = document.getElementById('audienceChart').getContext('2d');
+        new Chart(ctxAudience, {
+            type: 'doughnut',
+            data: {
+                labels: ['El Ejecutor (Estatus)', 'La Abrumada (Tranquilidad)', 'El Responsable (Independencia)'],
+                datasets: [{
+                    data: [35, 45, 20],
+                    backgroundColor: ['#3b82f6', '#10b981', '#a855f7'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        const stepsData = [
+            {
+                id: 1,
+                name: "Paso 1: Todo Cuenta",
+                title: "Cada micro-decisión define tu vida",
+                desc: "Destruye la ilusión de que existen decisiones inofensivas. Tu día de mañana vale más de 10 millones de dólares; cada segundo malgastado es capital perdido.",
+                ciencia: "El sueño REM consolida las decisiones. Lo que el cerebro procesa al final del día (especialmente con carga emocional) dicta la arquitectura neuronal del día siguiente. La exposición a luz azul afecta este ciclo (Chang et al., Harvard).",
+                ref: "Brian Tracy (El Plan Fénix) y James Clear (La matemática del 1%)."
+            },
+            {
+                id: 2,
+                name: "Paso 2: Objetivos",
+                title: "10 Objetivos para 180 días",
+                desc: "La práctica de escribir 10 objetivos diarios en presente para alterar el sistema de activación reticular del cerebro.",
+                ciencia: "Teoría de establecimiento de metas. El enfoque direccional cambia la atención selectiva del cerebro, filtrando el ruido irrelevante.",
+                ref: "Brian Tracy (Método de los 10 objetivos escritos a mano)."
+            },
+            {
+                id: 3,
+                name: "Paso 3: Tu Entorno",
+                title: "Arquitectura del entorno y personas",
+                desc: "El secreto del 1% no es fuerza de voluntad sobrehumana, es un entorno diseñado para que fallar sea difícil y acertar sea fácil.",
+                ciencia: "Estudios de N. Christakis sobre cómo la obesidad y los hábitos son contagiosos en redes sociales y círculos cercanos.",
+                ref: "Cal Newport (Entorno diseñado), Jim Rohn (Sos el promedio de las 5 personas)."
+            },
+            {
+                id: 4,
+                name: "Paso 4: Autopercepción",
+                title: "El mantra matutino y el lenguaje",
+                desc: "El instante en el que asumís la responsabilidad absoluta. Lo que te repetís a vos mismo se convierte en la profecía de tus acciones.",
+                ciencia: "Neuroplasticidad y picos de glucosa. El cerebro prioriza lo difícil en las primeras horas; usar ese combustible en redes sociales arruina el ciclo diario.",
+                ref: "Carol Dweck (Mentalidad de crecimiento), Robin Sharma (Regla 20/20/20)."
+            },
+            {
+                id: 5,
+                name: "Paso 5: Disciplina",
+                title: "Una batalla a la vez",
+                desc: "La prohibición de intentar cambiar toda la vida junta. Se elige un solo comportamiento, se automatiza y luego se suma otro.",
+                ciencia: "La liberación de dopamina a través de las micro-victorias construye un loop de recompensa cerebral que sustituye la necesidad de motivación externa.",
+                ref: "Charles Duhigg (El poder de las pequeñas victorias), BJ Fogg (Micro-hábitos)."
+            },
+            {
+                id: 6,
+                name: "Paso 6: Hábitos Sólidos",
+                title: "Sostener la acción en el tiempo",
+                desc: "El rechazo al cortoplacismo. Aceptar que el cambio es aburrido y requiere consistencia, no intensidad intermitente.",
+                ciencia: "El estudio de Phillippa Lally (UCL) que demuestra que el mito de los 21 días es falso: el promedio real de automatización es de 66 días.",
+                ref: "James Clear (Sistemas vs. Metas)."
+            },
+            {
+                id: 7,
+                name: "Paso 7: Vínculos",
+                title: "El perdón y la calidad relacional",
+                desc: "Limpiar el lastre emocional que drena energía. El cierre del sistema se apoya en cómo interactuamos con el mundo exterior.",
+                ciencia: "El estudio longitudinal de Harvard de 80 años sobre la felicidad humana y la calidad de los vínculos, sumado al impacto del perdón en la presión arterial.",
+                ref: "Gabor Maté (Visión cuerpo-mente de la enfermedad y el estrés), Los Estoicos."
+            }
+        ];
+
+        const stepSelector = document.getElementById('step-selector');
+        const stepContent = document.getElementById('step-content');
+
+        function renderStep(stepId) {
+            const step = stepsData.find(s => s.id === stepId);
+            stepContent.innerHTML = `
+                <div class="animate-[fadeIn_0.3s_ease-in-out]">
+                    <span class="inline-block px-3 py-1 bg-orange-100 text-orange-700 text-sm font-bold rounded-full mb-4">Paso ${step.id} de 7</span>
+                    <h3 class="text-2xl font-black text-slate-800 mb-2">${step.title}</h3>
+                    <p class="text-slate-600 text-lg mb-8">${step.desc}</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h4 class="flex items-center gap-2 font-bold text-slate-800 mb-3"><span class="text-xl">🔬</span> Respaldo Científico</h4>
+                            <p class="text-sm text-slate-600 leading-relaxed">${step.ciencia}</p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h4 class="flex items-center gap-2 font-bold text-slate-800 mb-3"><span class="text-xl">📚</span> Genealogía / Referencias</h4>
+                            <p class="text-sm text-slate-600 leading-relaxed">${step.ref}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.querySelectorAll('.step-item').forEach(btn => {
+                btn.classList.remove('step-active');
+                btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
+            });
+            const activeBtn = document.getElementById(`btn-step-${stepId}`);
+            activeBtn.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
+            activeBtn.classList.add('step-active');
+        }
+
+        stepsData.forEach(step => {
+            const btn = document.createElement('button');
+            btn.id = `btn-step-${step.id}`;
+            btn.className = `step-item w-full text-left px-5 py-4 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold hover:border-orange-500`;
+            btn.innerText = step.name;
+            btn.onclick = () => renderStep(step.id);
+            stepSelector.appendChild(btn);
+        });
+
+        const faqs = [
+            { q: "Crítica: Neoliberalismo Espiritual", a: "Crítica de B. Ehrenreich: 'traslada problemas estructurales a fallas personales'. Respuesta honesta: El libro reconoce que la estructura social existe, pero su enfoque es el micro-entorno. No es justicia social, es control de daño y agencia operativa. El libro no promete riqueza, promete orden." },
+            { q: "Crítica: Survivorship Bias (Sesgo del superviviente)", a: "Crítica: 'Lo que le funcionó al autor no funciona para todos'. Respuesta: Por eso el libro es una matriz de 7 pasos genéricos, no un recetario. Cada persona elige su batalla. El sistema exige adaptación personal, no copia fiel." },
+            { q: "FAQ: ¿Por qué 180 días y no menos?", a: "Es el tiempo mínimo necesario (6 meses) para lograr renovación celular parcial, estabilizar la microbiota y asegurar la barrera de automatización de hábitos (60-90 días reales). Prometerlo en 7 días es estafa." },
+            { q: "FAQ: Estoy haciendo los 7 pasos a la vez y me abruma", a: "Ese es un error crítico. El Paso 5 (Disciplina) indica explícitamente: 'Una batalla a la vez'. Es una secuencia, no simultaneidad." },
+            { q: "Marketing: ¿Por qué un SLO de $9 USD?", a: "No busca margen directo. Busca liquidar el costo de adquisición publicitario (CAC) en Meta Ads, validar el embudo y crear una base masiva de compradores calificados en LATAM para futuros Cross-Sells o mentorías." }
+        ];
+
+        const accordionContainer = document.getElementById('accordion-container');
+        faqs.forEach((faq, index) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'border-b border-slate-100 last:border-0';
+            
+            const btn = document.createElement('button');
+            btn.className = 'w-full text-left px-6 py-5 flex justify-between items-center focus:outline-none';
+            btn.innerHTML = `<span class="font-bold text-slate-800">${faq.q}</span><span class="text-2xl text-slate-400 transition-transform duration-300 transform">+</span>`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'accordion-content px-6 bg-slate-50';
+            contentDiv.innerHTML = `<p class="py-4 text-slate-600 text-sm leading-relaxed">${faq.a}</p>`;
+            
+            btn.onclick = () => {
+                const isOpen = contentDiv.style.maxHeight;
+                document.querySelectorAll('.accordion-content').forEach(content => {
+                    content.style.maxHeight = null;
+                });
+                document.querySelectorAll('#accordion-container button span:last-child').forEach(icon => {
+                    icon.style.transform = 'rotate(0deg)';
+                });
+                
+                if (!isOpen) {
+                    contentDiv.style.maxHeight = contentDiv.scrollHeight + "px";
+                    btn.querySelector('span:last-child').style.transform = 'rotate(45deg)';
+                }
+            };
+            
+            wrapper.appendChild(btn);
+            wrapper.appendChild(contentDiv);
+            accordionContainer.appendChild(wrapper);
+        });
+
+        setTimeout(() => { renderStep(1); }, 100);
+
+    </script>
+</body>
+</html>

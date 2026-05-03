@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>7 Pasos · Matriz de 6 Ads Estáticos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #18181b; color: #e4e4e7; font-family: 'Manrope', sans-serif; }
+  
+  .gallery {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 60px 24px;
+  }
+  .gallery-header {
+    text-align: center;
+    margin-bottom: 64px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid #27272a;
+  }
+  .gallery-header h1 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.02em;
+    color: #fafafa;
+  }
+  .gallery-header p {
+    color: #a1a1aa;
+    margin-top: 12px;
+    font-size: 15px;
+  }
+  
+  .ads-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 48px;
+  }
+  
+  .ad-block .ad-meta {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ad-meta .tag {
+    display: inline-block;
+    width: fit-content;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fb923c;
+    background: rgba(251, 146, 60, 0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(251, 146, 60, 0.25);
+  }
+  .ad-meta .ad-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fafafa;
+    margin-top: 6px;
+  }
+  .ad-meta .ad-sub {
+    font-size: 13px;
+    color: #71717a;
+  }
+  
+  /* CANVAS BASE: 4:5 ratio (1080x1350) */
+  .ad {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  
+  .caption-block {
+    margin-top: 20px;
+    padding: 16px 18px;
+    background: #27272a;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #d4d4d8;
+    border-left: 2px solid #fb923c;
+  }
+  .caption-block .caption-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: #fb923c;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+  
+  /* ============================================
+     AD 1 — INCONSCIENTE / VALOR DEL TIEMPO
+     Estética: Cajero ATM / terminal verde fósforo
+     ============================================ */
+  .ad-1 {
+    background: #000;
+    font-family: 'JetBrains Mono', monospace;
+    color: #4ade80;
+    padding: 7%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  .ad-1::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(74, 222, 128, 0.04) 2px,
+      rgba(74, 222, 128, 0.04) 3px
+    );
+    pointer-events: none;
+  }
+  .ad-1::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+  }
+  .ad-1-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    opacity: 0.6;
+  }
+  .ad-1-top .blink { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .ad-1-mid {
+    position: relative;
+    z-index: 2;
+  }
+  .ad-1-prompt {
+    font-size: 12px;
+    opacity: 0.5;
+    margin-bottom: 8px;
+    letter-spacing: 0.15em;
+  }
+  .ad-1-amount {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(48px, 11vw, 92px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: #4ade80;
+    text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+  }
+  .ad-1-amount .currency {
+    font-size: 0.45em;
+    vertical-align: top;
+    margin-right: 4px;
+    opacity: 0.7;
+  }
+  .ad-1-q {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: clamp(20px, 4.5vw, 32px);
+    color: #fafafa;
+    line-height: 1.1;
+    margin-top: 28px;
+    letter-spacing: -0.02em;
+  }
+  .ad-1-q em {
+    font-style: normal;
+    color: #4ade80;
+  }
+  .ad-1-bottom {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+  .ad-1-bottom .cta {
+    background: #4ade80;
+    color: #000;
+    padding: 10px 16px;
+    font-weight: 700;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+  }
+  
+  /* ============================================
+     AD 2 — PROBLEMA / SOBRECARGA DE LIBROS
+     Estética: editorial brutalist con tachones
+     ============================================ */
+  .ad-2 {
+    background: #fafaf9;
+    color: #18181b;
+    padding: 8%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .ad-2::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(0,0,0,0.04) 0%, transparent 50%);
+  }
+  .ad-2-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #18181b;
+    border: 1px solid #18181b;
+    padding: 6px 10px;
+    width: fit-content;
+    z-index: 2;
+  }
+  .ad-2-stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 32px 0;
+    z-index: 2;
+  }
+  .ad-2-book {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(18px, 3.8vw, 26px);
+    color: #71717a;
+    position: relative;
+    padding: 4px 0;
+    text-decoration: line-through;
+    text-decoration-color: #ef4444;
+    text-decoration-thickness: 3px;
+  }
+  .ad-2-book.new {
+    color: #18181b;
+    font-weight: 700;
+    font-style: normal;
+    font-family: 'Manrope', sans-serif;
+    text-decoration: none;
+    border-top: 2px solid #18181b;
+    padding-top: 12px;
+    margin-top: 8px;
+  }
+  .ad-2-headline {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(28px, 6vw, 46px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: #18181b;
+    z-index: 2;
+  }
+  .ad-2-headline .accent {
+    background: #fb923c;
+    padding: 0 8px;
+    display: inline-block;
+  }
+  .ad-2-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    z-index: 2;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+  }
+  
+  /* ============================================
+     AD 3 — SOLUCIÓN / 180 DÍAS — ESCALERA
+     Estética: editorial minimalista, gráfico de barras
+     ============================================ */
+  .ad-3 {
+    background: linear-gradient(160deg, #0c4a6e 0%, #082f49 100%);
+    color: #f0f9ff;
+    padding: 8% 7%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .ad-3::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(34,211,238,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .ad-3-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #67e8f9;
+    margin-bottom: 24px;
+  }
+  .ad-3-headline {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(40px, 9vw, 76px);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: #fafafa;
+  }
+  .ad-3-headline .num {
+    color: #22d3ee;
+    display: block;
+  }
+  .ad-3-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(16px, 3vw, 22px);
+    color: #bae6fd;
+    margin-top: 16px;
+    line-height: 1.3;
+  }
+  .ad-3-stairs {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: 32px;
+    height: 100px;
+  }
+  .ad-3-stair {
+    flex: 1;
+    background: linear-gradient(to top, #22d3ee, #67e8f9);
+    border-radius: 2px 2px 0 0;
+    position: relative;
+  }
+  .ad-3-stair::after {
+    content: attr(data-step);
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #67e8f9;
+    opacity: 0.7;
+  }
+  .ad-3-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .ad-3-bottom .price {
+    background: #22d3ee;
+    color: #082f49;
+    padding: 8px 14px;
+    font-weight: 700;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  /* ============================================
+     AD 4 — PRODUCTO / MOCKUP MANUAL LATINO
+     Estética: editorial clásico con guiño porteño
+     ============================================ */
+  .ad-4 {
+    background: #fef3c7;
+    color: #422006;
+    padding: 9% 7%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .ad-4::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 2px solid #422006;
+    pointer-events: none;
+  }
+  .ad-4::after {
+    content: '';
+    position: absolute;
+    inset: 18px;
+    border: 1px solid #422006;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  .ad-4-top {
+    text-align: center;
+    z-index: 2;
+  }
+  .ad-4-top .stamp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    border: 1px solid #422006;
+    padding: 5px 12px;
+    display: inline-block;
+    transform: rotate(-2deg);
+  }
+  .ad-4-headline {
+    text-align: center;
+    z-index: 2;
+    padding: 12px;
+  }
+  .ad-4-headline .pre {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(18px, 3.5vw, 24px);
+    display: block;
+    margin-bottom: 12px;
+  }
+  .ad-4-headline .main {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(32px, 7.5vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+  .ad-4-headline .underline {
+    border-bottom: 4px solid #ea580c;
+    padding-bottom: 2px;
+  }
+  .ad-4-headline .post {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(15px, 2.8vw, 19px);
+    display: block;
+    margin-top: 14px;
+    color: #78350f;
+  }
+  .ad-4-divider {
+    z-index: 2;
+    text-align: center;
+    margin: 14px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.5em;
+    color: #ea580c;
+  }
+  .ad-4-bottom {
+    text-align: center;
+    z-index: 2;
+  }
+  .ad-4-bottom .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #78350f;
+    margin-bottom: 10px;
+  }
+  .ad-4-bottom .price-tag {
+    background: #422006;
+    color: #fef3c7;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(20px, 4vw, 28px);
+    padding: 10px 22px;
+    display: inline-block;
+    letter-spacing: 0.05em;
+  }
+  
+  /* ============================================
+     AD 5 — DECISIÓN / TWEET CON OBJECIÓN
+     Estética: post de X (Twitter) realista
+     ============================================ */
+  .ad-5 {
+    background: #f4f4f5;
+    color: #18181b;
+    padding: 8% 6%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    position: relative;
+  }
+  .ad-5-tweet {
+    background: #fff;
+    border: 1px solid #e4e4e7;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  }
+  .ad-5-tweet-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .ad-5-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ea580c, #f97316);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Archivo Black', sans-serif;
+    color: #fff;
+    font-size: 18px;
+  }
+  .ad-5-userinfo {
+    display: flex;
+    flex-direction: column;
+  }
+  .ad-5-userinfo .name {
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ad-5-userinfo .name::after {
+    content: '✓';
+    background: #1d9bf0;
+    color: #fff;
+    font-size: 10px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ad-5-userinfo .handle {
+    color: #71717a;
+    font-size: 13px;
+  }
+  .ad-5-tweet-body {
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(17px, 3.5vw, 22px);
+    line-height: 1.4;
+    color: #18181b;
+    font-weight: 500;
+  }
+  .ad-5-tweet-body strong {
+    color: #ea580c;
+  }
+  .ad-5-tweet-foot {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #e4e4e7;
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: #71717a;
+  }
+  .ad-5-tweet-foot span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ad-5-cta {
+    text-align: center;
+    padding: 14px;
+    background: #18181b;
+    color: #fafafa;
+    border-radius: 10px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(14px, 2.8vw, 18px);
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+  }
+  .ad-5-cta .arrow {
+    color: #fb923c;
+  }
+  
+  /* ============================================
+     AD 6 — MOST AWARE / OFERTA DIRECTA
+     Estética: maximalista naranja, all caps, brutalist
+     ============================================ */
+  .ad-6 {
+    background: #ea580c;
+    color: #fff;
+    padding: 7%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .ad-6::before {
+    content: 'TODO CUENTA · TODO CUENTA · TODO CUENTA · TODO CUENTA · TODO CUENTA ·';
+    position: absolute;
+    top: 0; left: 0;
+    width: 200%;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 28px;
+    color: rgba(255,255,255,0.08);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    transform: rotate(-12deg) translateY(-30px);
+    pointer-events: none;
+  }
+  .ad-6-top {
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .ad-6-top .badge {
+    background: #18181b;
+    color: #fb923c;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    padding: 6px 12px;
+    border-radius: 2px;
+  }
+  .ad-6-top .seven {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 60px;
+    line-height: 1;
+    color: #fff;
+    text-shadow: 4px 4px 0 #18181b;
+  }
+  .ad-6-mid {
+    z-index: 2;
+  }
+  .ad-6-headline {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: clamp(36px, 9.5vw, 78px);
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .ad-6-headline .strike {
+    position: relative;
+    color: rgba(255,255,255,0.5);
+    margin-right: 12px;
+  }
+  .ad-6-headline .strike::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: -4px; right: -4px;
+    height: 6px;
+    background: #18181b;
+    transform: translateY(-50%) rotate(-3deg);
+  }
+  .ad-6-headline .price {
+    background: #18181b;
+    color: #fb923c;
+    padding: 0 8px;
+  }
+  .ad-6-bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 20px;
+  }
+  .ad-6-bullet {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(11px, 2.2vw, 14px);
+    letter-spacing: 0.05em;
+    color: rgba(255,255,255,0.92);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ad-6-bullet::before {
+    content: '✓';
+    font-weight: 700;
+    color: #18181b;
+    background: #fff;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .ad-6-bottom {
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 2px solid rgba(255,255,255,0.2);
+  }
+  .ad-6-bottom .small {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.2;
+    max-width: 60%;
+  }
+  .ad-6-bottom .cta {
+    background: #18181b;
+    color: #fff;
+    padding: 10px 16px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="gallery">
+  <header class="gallery-header">
+    <h1>7 PASOS · MATRIZ DE 6 ADS ESTÁTICOS</h1>
+    <p>Formato 1080×1350 (4:5) · Meta Ads Andromeda · SLO $29 USD</p>
+  </header>
+
+  <div class="ads-grid">
+
+    <!-- ============== AD 1 ============== -->
+    <div class="ad-block">
+      <div class="ad-meta">
+        <span class="tag">01 · INCONSCIENTE</span>
+        <span class="ad-title">El cajero del tiempo</span>
+        <span class="ad-sub">Hook de shock · valor monetario del día</span>
+      </div>
+      <div class="ad ad-1">
+        <div class="ad-1-top">
+          <span>BANCO DE TU VIDA</span>
+          <span class="blink">●</span>
+        </div>
+        <div class="ad-1-mid">
+          <div class="ad-1-prompt">SALDO DISPONIBLE HOY:</div>
+          <div class="ad-1-amount"><span class="currency">USD</span>10.000.000</div>
+          <div class="ad-1-q">¿Lo regalás <em>scrolleando</em> otra vez?</div>
+        </div>
+        <div class="ad-1-bottom">
+          <span>SI MAÑANA NO DESPERTÁS</span>
+          <span class="cta">RETIRAR &gt;</span>
+        </div>
+      </div>
+      <div class="caption-block">
+        <span class="caption-label">Primary Text</span>
+        Si te ofrecieran 10 millones de dólares a cambio de no despertar mañana, no aceptarías. Conclusión: tu día vale eso. Y lo estás regalando.<br><br>
+        180 días. 7 pasos. Empezás por $29.
+      </div>
+    </div>
+
+    <!-- ============== AD 2 ============== -->
+    <div class="ad-block">
+      <div class="ad-meta">
+        <span class="tag">02 · PROBLEMA</span>
+        <span class="ad-title">La pila de libros sin aplicar</span>
+        <span class="ad-sub">Sobrecarga cognitiva · objeción frontal</span>
+      </div>
+      <div class="ad ad-2">
+        <div class="ad-2-tag">★ DIAGNÓSTICO</div>
+        <div class="ad-2-stack">
+          <div class="ad-2-book">Hábitos atómicos</div>
+          <div class="ad-2-book">El poder del ahora</div>
+          <div class="ad-2-book">Padre rico, padre pobre</div>
+          <div class="ad-2-book">Los 7 hábitos…</div>
+          <div class="ad-2-book">El monje que vendió su Ferrari</div>
+          <div class="ad-2-book new">→ 7 PASOS · 35 MIN · ACCIÓN HOY</div>
+        </div>
+        <h2 class="ad-2-headline">No te falta <span class="accent">motivación</span>.<br>Te falta un <span class="accent">sistema</span>.</h2>
+        <div class="ad-2-bottom">
+          <span>CAPÍTULO 1 GRATIS</span>
+          <span>→</span>
+        </div>
+      </div>
+      <div class="caption-block">
+        <span class="caption-label">Primary Text</span>
+        Tenés 20 libros en la mesita de luz y tu rutina sigue igual. El problema no sos vos: es que ninguno te dio un mapa de ejecución diaria.<br><br>
+        7 pasos. 180 días. Una sola batalla a la vez.
+      </div>
+    </div>
+
+    <!-- ============== AD 3 ============== -->
+    <div class="ad-block">
+      <div class="ad-meta">
+        <span class="tag">03 · SOLUCIÓN</span>
+        <span class="ad-title">El sistema de los 180 días</span>
+        <span class="ad-sub">Mecanismo único · escalera de progreso</span>
+      </div>
+      <div class="ad ad-3">
+        <div class="ad-3-eyebrow">EL SISTEMA</div>
+        <h2 class="ad-3-headline">
+          <span class="num">180</span>
+          <span>DÍAS.</span>
+          <span>7 PASOS.</span>
+        </h2>
+        <p class="ad-3-sub">Una sola batalla a la vez. Eso es todo lo que hace falta.</p>
+        <div class="ad-3-stairs">
+          <div class="ad-3-stair" style="height: 18%" data-step="1"></div>
+          <div class="ad-3-stair" style="height: 32%" data-step="2"></div>
+          <div class="ad-3-stair" style="height: 46%" data-step="3"></div>
+          <div class="ad-3-stair" style="height: 60%" data-step="4"></div>
+          <div class="ad-3-stair" style="height: 72%" data-step="5"></div>
+          <div class="ad-3-stair" style="height: 86%" data-step="6"></div>
+          <div class="ad-3-stair" style="height: 100%" data-step="7"></div>
+        </div>
+        <div class="ad-3-bottom">
+          <span>DÍA 1 → DÍA 180</span>
+          <span class="price">EMPEZÁ X $29</span>
+        </div>
+      </div>
+      <div class="caption-block">
+        <span class="caption-label">Primary Text</span>
+        El secreto no es fuerza de voluntad. Es la arquitectura de tu entorno y un orden de ejecución.<br><br>
+        Conocé los 7 pasos que te llevan del Día 1 al Día 180 sin morir en el intento.
+      </div>
+    </div>
+
+    <!-- ============== AD 4 ============== -->
+    <div class="ad-block">
+      <div class="ad-meta">
+        <span class="tag">04 · PRODUCTO</span>
+        <span class="ad-title">El manual para latinos</span>
+        <span class="ad-sub">Autoridad + diferenciación cultural</span>
+      </div>
+      <div class="ad ad-4">
+        <div class="ad-4-top">
+          <span class="stamp">EDICIÓN ARGENTINA · 2026</span>
+        </div>
+        <div class="ad-4-headline">
+          <span class="pre">Un manual práctico para</span>
+          <span class="main">LATINOS<br>QUE QUIEREN<br><span class="underline">RESULTADOS</span>,</span>
+          <span class="post">no promesas gringas ni jerga mística.</span>
+        </div>
+        <div class="ad-4-divider">· · · · · ·</div>
+        <div class="ad-4-bottom">
+          <div class="meta">35 MIN DE LECTURA · APP INCLUIDA</div>
+          <div class="price-tag">ACCESO DE POR VIDA · $29</div>
+        </div>
+      </div>
+      <div class="caption-block">
+        <span class="caption-label">Primary Text</span>
+        Sin bullshit motivacional. Sin frases de Instagram. Un sistema de 7 pasos para diseñar los próximos 6 meses de tu vida, escrito en argentino y para gente que arranca de cero.<br><br>
+        Libro + App + acceso de por vida = $29.
+      </div>
+    </div>
+
+    <!-- ============== AD 5 ============== -->
+    <div class="ad-block">
+      <div class="ad-meta">
+        <span class="tag">05 · DECISIÓN</span>
+        <span class="ad-title">El tweet que pega</span>
+        <span class="ad-sub">Frase ancla · social proof orgánico</span>
+      </div>
+      <div class="ad ad-5">
+        <div class="ad-5-tweet">
+          <div class="ad-5-tweet-head">
+            <div class="ad-5-avatar">7</div>
+            <div class="ad-5-userinfo">
+              <span class="name">7 Pasos</span>
+              <span class="handle">@7pasos · ahora</span>
+            </div>
+          </div>
+          <div class="ad-5-tweet-body">
+            Tu vida actual es el resultado de tus decisiones de los <strong>últimos 2 años</strong>.<br><br>
+            Tu vida en 6 meses depende de lo que decidas hoy en <strong>35 minutos de lectura</strong>.
+          </div>
+          <div class="ad-5-tweet-foot">
+            <span>💬 1,2K</span>
+            <span>↻ 8,4K</span>
+            <span>♥ 47K</span>
+          </div>
+        </div>
+        <div class="ad-5-cta">
+          EL LIBRO QUE LO EXPLICA TODO<br>
+          <span class="arrow">→</span> 7 PASOS · $29 USD
+        </div>
+      </div>
+      <div class="caption-block">
+        <span class="caption-label">Primary Text</span>
+        Hace dos años, vos decidiste todo lo que sos hoy. Bueno o malo. Esto no es filosofía, es matemática.<br><br>
+        Lo bueno: el próximo capítulo lo escribís vos. Empieza con 35 minutos de lectura.
+      </div>
+    </div>
+
+    <!-- ============== AD 6 ============== -->
+    <div class="ad-block">
+      <div class="ad-meta">
+        <span class="tag">06 · MOST AWARE</span>
+        <span class="ad-title">La oferta cerrada</span>
+        <span class="ad-sub">Precio + bullets + cierre directo</span>
+      </div>
+      <div class="ad ad-6">
+        <div class="ad-6-top">
+          <span class="badge">OFERTA · ACCESO DE POR VIDA</span>
+          <span class="seven">7</span>
+        </div>
+        <div class="ad-6-mid">
+          <h2 class="ad-6-headline">
+            CAMBIÁ<br>TU VIDA<br>POR <span class="strike">$147</span><span class="price">$29</span>
+          </h2>
+          <div class="ad-6-bullets">
+            <div class="ad-6-bullet">LIBRO COMPLETO · LOS 7 PASOS</div>
+            <div class="ad-6-bullet">APP DE TRACKING · 180 DÍAS</div>
+            <div class="ad-6-bullet">TUS 10 OBJETIVOS GUIADOS</div>
+            <div class="ad-6-bullet">LECTURA MATUTINA + RACHA</div>
+            <div class="ad-6-bullet">SIN SUSCRIPCIÓN · UN PAGO</div>
+          </div>
+        </div>
+        <div class="ad-6-bottom">
+          <span class="small">Si en 180 días no sos otra persona, te lo devuelvo.</span>
+          <span class="cta">EMPEZAR &gt;</span>
+        </div>
+      </div>
+      <div class="caption-block">
+        <span class="caption-label">Primary Text</span>
+        Sin peros. Sin asteriscos. Libro + App + acceso de por vida por 29 dólares. Si en 180 días no sos otra persona, te devolvemos todo.<br><br>
+        Menos que una cena para dos. La pregunta es si vos querés el resultado.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
