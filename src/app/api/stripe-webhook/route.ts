@@ -17,7 +17,8 @@ const CAPI_TOKEN = process.env.META_CAPI_ACCESS_TOKEN;
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'hola@gabiuccello.com';
-const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
+const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
+const SLACK_CHANNEL = process.env.SLACK_ERROR_CHANNEL_ID;
 const CAPI_URL = `https://graph.facebook.com/v20.0/${PIXEL_ID}/events`;
 const SOURCE_URL = 'https://libro.gabiuccello.com/venta';
 const APP_URL = 'https://libro.gabiuccello.com';
@@ -175,7 +176,7 @@ export async function POST(req: NextRequest) {
   // ── 3. Email de bienvenida con Resend ─────────────────────────────────────
   await Promise.all([
     email && RESEND_API_KEY ? sendPurchaseEmail(email, name, loginLink) : Promise.resolve(),
-    SLACK_WEBHOOK_URL ? notifySlack({ name, email, amount: amountTotal, currency, sessionId }) : Promise.resolve(),
+    SLACK_BOT_TOKEN && SLACK_CHANNEL ? notifySlack({ name, email, amount: amountTotal, currency, sessionId }) : Promise.resolve(),
   ]);
 
   return NextResponse.json({ received: true });
@@ -186,13 +187,19 @@ async function notifySlack({ name, email, amount, currency, sessionId }: {
 }): Promise<void> {
   const value = (amount / 100).toFixed(2);
   try {
-    await fetch(SLACK_WEBHOOK_URL!, {
+    const res = await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${SLACK_BOT_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
+        channel: SLACK_CHANNEL,
         text: `💰 *Nueva venta — 7 Pasos*\n*$${value} ${currency}*\n👤 ${name || 'Sin nombre'} (${email})\n🔑 \`${sessionId}\``,
       }),
     });
+    const data = await res.json() as { ok: boolean; error?: string };
+    if (!data.ok) console.error('Slack error:', data.error);
   } catch (err) {
     console.error('Slack notify falló:', err);
   }
