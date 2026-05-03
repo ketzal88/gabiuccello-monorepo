@@ -32,7 +32,7 @@ function sectionsToHtml(sections: StepSection[]): string {
       case 'list':
         return `<p>${esc(s.content)}</p><ul>${(s.items ?? []).map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`;
       case 'table':
-        return `<table><thead><tr><th>Período</th><th>Acción</th><th>Meta</th></tr></thead><tbody>${(s.rows ?? []).map((r) => `<tr><td>${esc(r.col1)}</td><td>${esc(r.col2)}</td><td>${esc(r.col3)}</td></tr>`).join('')}</tbody></table>`;
+        return `<table><thead><tr><th>Qué sacar</th><th>Por qué</th><th>Qué sumar</th></tr></thead><tbody>${(s.rows ?? []).map((r) => `<tr><td>${esc(r.col1)}</td><td>${esc(r.col2)}</td><td>${esc(r.col3)}</td></tr>`).join('')}</tbody></table>`;
       case 'exercise':
         return `<div class="exercise"><p>${esc(s.content)}</p></div>`;
       default:
