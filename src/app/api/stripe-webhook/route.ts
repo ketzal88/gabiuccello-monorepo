@@ -23,6 +23,7 @@ const CAPI_URL = `https://graph.facebook.com/v20.0/${PIXEL_ID}/events`;
 const SOURCE_URL = 'https://libro.gabiuccello.com/venta';
 const APP_URL = 'https://libro.gabiuccello.com';
 const PDF_URL = 'https://libro.gabiuccello.com/libro/7-pasos-para-cambiar-tu-vida.pdf';
+const EPUB_URL = 'https://libro.gabiuccello.com/libro/7-pasos-para-cambiar-tu-vida.epub';
 
 function verifyStripeSignature(rawBody: string, sigHeader: string, secret: string): boolean {
   const parts: Record<string, string> = {};
@@ -86,12 +87,21 @@ export async function POST(req: NextRequest) {
   const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
   const userAgent = req.headers.get('user-agent') ?? '';
 
+  const nameParts = name.trim().split(/\s+/);
+  const firstName = nameParts[0] ?? '';
+  const lastName = nameParts.slice(1).join(' ');
+
   // ── 1. Meta CAPI ─────────────────────────────────────────────────────────
   const userData: Record<string, unknown> = {
     client_ip_address: ipAddress,
     client_user_agent: userAgent,
   };
-  if (email) userData.em = [sha256hex(email)];
+  if (email) {
+    userData.em = [sha256hex(email)];
+    userData.external_id = [sha256hex(email)];
+  }
+  if (firstName) userData.fn = [sha256hex(firstName.toLowerCase())];
+  if (lastName) userData.ln = [sha256hex(lastName.toLowerCase())];
   if (fbp) userData.fbp = fbp;
   if (fbc) userData.fbc = fbc;
 
@@ -231,7 +241,8 @@ async function sendPurchaseEmail(to: string, name: string, loginLink: string): P
         </td></tr>
         <tr><td style="padding-top:24px;padding-bottom:48px;border-top:1px solid #1f1f1f;">
           <p style="margin:0 0 8px;font-size:13px;color:#525252;">¿Preferís leer offline?</p>
-          <a href="${PDF_URL}" style="font-size:14px;color:#f97316;text-decoration:none;">Descargar PDF ↓</a>
+          <a href="${PDF_URL}" style="font-size:14px;color:#f97316;text-decoration:none;display:block;margin-bottom:6px;">Descargar PDF ↓</a>
+          <a href="${EPUB_URL}" style="font-size:14px;color:#f97316;text-decoration:none;">Descargar EPUB (Kindle / Apple Books) ↓</a>
         </td></tr>
         <tr><td>
           <p style="margin:0;font-size:12px;color:#525252;line-height:1.6;">Gabi Uccello · libro.gabiuccello.com<br>Respondé este mail si tenés alguna duda.</p>

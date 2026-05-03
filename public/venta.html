@@ -1497,12 +1497,30 @@ section {
     return match ? decodeURIComponent(match[2]) : '';
   }
 
-  // fbp y fbc son las cookies que Meta Pixel pone automáticamente.
-  // fbp = browser ID (siempre presente si el Pixel cargó)
-  // fbc = click ID (presente si el usuario vino de un anuncio de Meta)
+  // Genera un fbp válido si el Pixel no cargó (formato: fb.1.{ts}.{random})
+  function getFbp() {
+    var cookie = getCookie('_fbp');
+    if (cookie) return cookie;
+    var stored = sessionStorage.getItem('_fbp_fallback');
+    if (stored) return stored;
+    var generated = 'fb.1.' + Date.now() + '.' + Math.floor(Math.random() * 1e10);
+    sessionStorage.setItem('_fbp_fallback', generated);
+    return generated;
+  }
+
+  // Construye fbc desde la cookie o desde ?fbclid= en la URL
+  function getFbc() {
+    var cookie = getCookie('_fbc');
+    if (cookie) return cookie;
+    var urlParams = new URLSearchParams(window.location.search);
+    var fbclid = urlParams.get('fbclid');
+    if (fbclid) return 'fb.1.' + Date.now() + '.' + fbclid;
+    return '';
+  }
+
   function buildStripeUrl() {
-    var fbp = getCookie('_fbp');
-    var fbc = getCookie('_fbc');
+    var fbp = getFbp();
+    var fbc = getFbc();
     // Formato: "fbp||fbc" — el webhook lo parsea con split('||')
     var parts = [fbp, fbc].filter(Boolean);
     if (!parts.length) return STRIPE_BASE;
@@ -1562,6 +1580,9 @@ section {
 
   document.addEventListener('DOMContentLoaded', function () {
     patchStripeLinks();
+
+    // Re-patchear cuando el Pixel haya cargado y seteado _fbp
+    setTimeout(patchStripeLinks, 1500);
 
     // Asignar handler a todos los CTAs que van a Stripe
     document.querySelectorAll('a[href*="buy.stripe.com"]').forEach(function (link) {

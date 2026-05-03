@@ -34,21 +34,36 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-function PdfDownloadBanner() {
+function DownloadsBanner() {
   return (
-    <a
-      href="/libro/7-pasos-para-cambiar-tu-vida.pdf"
-      download
-      className="flex items-center gap-3 p-3 bg-stone-50 border border-stone-200 rounded-xl hover:bg-stone-100 transition-colors no-underline"
-    >
-      <div className="w-8 h-8 rounded-lg bg-stone-200 flex items-center justify-center flex-shrink-0">
-        <Download size={15} className="text-stone-600" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-stone-700 leading-tight">Descargar PDF</p>
-        <p className="text-xs text-stone-400">Para leer offline</p>
-      </div>
-    </a>
+    <div className="flex flex-col gap-2">
+      <a
+        href="/libro/7-pasos-para-cambiar-tu-vida.pdf"
+        download
+        className="flex items-center gap-3 p-3 bg-stone-50 border border-stone-200 rounded-xl hover:bg-stone-100 transition-colors no-underline"
+      >
+        <div className="w-8 h-8 rounded-lg bg-stone-200 flex items-center justify-center flex-shrink-0">
+          <Download size={15} className="text-stone-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-stone-700 leading-tight">Descargar PDF</p>
+          <p className="text-xs text-stone-400">Para leer offline</p>
+        </div>
+      </a>
+      <a
+        href="/libro/7-pasos-para-cambiar-tu-vida.epub"
+        download
+        className="flex items-center gap-3 p-3 bg-stone-50 border border-stone-200 rounded-xl hover:bg-stone-100 transition-colors no-underline"
+      >
+        <div className="w-8 h-8 rounded-lg bg-stone-200 flex items-center justify-center flex-shrink-0">
+          <Download size={15} className="text-stone-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-stone-700 leading-tight">Descargar EPUB</p>
+          <p className="text-xs text-stone-400">Para Kindle, Apple Books, Kobo</p>
+        </div>
+      </a>
+    </div>
   );
 }
 
@@ -160,7 +175,7 @@ function ReadingDashboard({ stepsRead }: { stepsRead: number[] }) {
         </Card>
       )}
 
-      <PdfDownloadBanner />
+      <DownloadsBanner />
 
       {/* Intro card */}
       <div>
@@ -521,7 +536,7 @@ function TrackingDashboard({ activeObjectives }: { activeObjectives: Objective[]
         </div>
       )}
 
-      <PdfDownloadBanner />
+      <DownloadsBanner />
 
       {/* 7 Steps Grid */}
       <div>
