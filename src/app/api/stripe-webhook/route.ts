@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
           startDate: Timestamp.now(),
           stepsRead: [],
           onboardingPhase: 'reading',
-          subscription: { status: 'active' },
+          subscription: { status: 'active', grantedBy: 'purchase', stripeSessionId: sessionId },
         });
         console.log(`Firebase: usuario creado ${uid}`);
       } catch (err: unknown) {

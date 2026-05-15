@@ -34,7 +34,9 @@ export interface UserProfile {
   stepsRead: number[];
   onboardingPhase: OnboardingPhase;
   subscription?: {
-    status: "active" | "expired" | "trial";
+    status: "active" | "suspended" | "gifted";
+    grantedBy?: "purchase" | "admin";
+    stripeSessionId?: string;
     purchasedAt?: Timestamp;
     expiresAt?: Timestamp;
   };
