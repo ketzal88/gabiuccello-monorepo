@@ -26,6 +26,8 @@ function getDb() {
 
 export type OnboardingPhase = "reading" | "objectives" | "tracking";
 
+export type SubscriptionTier = "book" | "full";
+
 export interface UserProfile {
   displayName: string;
   email: string;
@@ -35,11 +37,24 @@ export interface UserProfile {
   onboardingPhase: OnboardingPhase;
   subscription?: {
     status: "active" | "suspended" | "gifted";
-    grantedBy?: "purchase" | "admin";
+    tier?: SubscriptionTier;
+    grantedBy?: "purchase" | "admin" | "upgrade";
     stripeSessionId?: string;
+    upgradeSessionId?: string;
     purchasedAt?: Timestamp;
+    upgradedAt?: Timestamp;
     expiresAt?: Timestamp;
   };
+}
+
+// Default to "full" so legacy users (pre-tier) keep their access.
+// Backfill script will set explicit "full" for those users.
+export function getTier(profile: UserProfile | null | undefined): SubscriptionTier {
+  return profile?.subscription?.tier ?? "full";
+}
+
+export function isFullTier(profile: UserProfile | null | undefined): boolean {
+  return getTier(profile) === "full";
 }
 
 // Returns the profile to avoid a separate getUserProfile call

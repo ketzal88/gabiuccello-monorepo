@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     startDate: Timestamp.now(),
     stepsRead: [],
     onboardingPhase: 'reading',
-    subscription: { status: 'gifted', grantedBy: 'admin' },
+    subscription: { status: 'gifted', tier: 'full', grantedBy: 'admin' },
   }, { merge: true });
 
   const loginLink = await adminAuth.generatePasswordResetLink(email, { url: `${APP_URL}/login` });

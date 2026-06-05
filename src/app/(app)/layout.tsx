@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AuthGuard } from "@/components/auth/auth-guard";
+import { UpgradeBanner } from "@/components/upgrade-banner";
 import { useAuth } from "@/context/auth-context";
+import { isFullTier } from "@/lib/firestore";
 import { signOut } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import {
@@ -31,39 +33,42 @@ function useNavItems(): NavItem[] {
   const { profile } = useAuth();
   const phase = profile?.onboardingPhase || "reading";
   const stepsRead = profile?.stepsRead;
+  const fullTier = isFullTier(profile);
 
   return useMemo(() => {
     const isTracking = phase === "tracking";
     const hasReadPaso2 = stepsRead && stepsRead.includes(2);
     const canSeeObjectives = isTracking || hasReadPaso2 || phase === "objectives";
 
+    // tier "book": el dashboard sigue siendo el libro siempre. El resto bloqueado
+    // permanentemente sin importar onboardingPhase — necesitan upgrade.
     return [
       {
         href: "/dashboard",
-        label: isTracking ? "Dashboard" : "El Libro",
-        icon: isTracking ? LayoutDashboard : BookOpen,
+        label: fullTier && isTracking ? "Dashboard" : "El Libro",
+        icon: fullTier && isTracking ? LayoutDashboard : BookOpen,
         disabled: false,
       },
       {
         href: "/tracker",
         label: "Tracker",
         icon: Trophy,
-        disabled: !isTracking,
+        disabled: !fullTier || !isTracking,
       },
       {
         href: "/objetivos",
         label: "Objetivos",
         icon: Target,
-        disabled: !canSeeObjectives,
+        disabled: !fullTier || !canSeeObjectives,
       },
       {
         href: "/progreso",
         label: "Progreso",
         icon: CalendarDays,
-        disabled: !isTracking,
+        disabled: !fullTier || !isTracking,
       },
     ];
-  }, [phase, stepsRead]);
+  }, [phase, stepsRead, fullTier]);
 }
 
 function NavLink({
@@ -184,6 +189,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Main content */}
         <main className="md:ml-64 pt-16 md:pt-0 min-h-screen">
+          <UpgradeBanner />
           <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-10">
             {children}
           </div>

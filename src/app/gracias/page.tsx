@@ -1,36 +1,83 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useMemo } from 'react';
 
-// IMPORTANTE: En Stripe Dashboard → tu Payment Link → Settings → Confirmation page:
-// Seleccioná "Redirect customers to your website"
-// URL: https://libro.gabiuccello.com/gracias?session_id={CHECKOUT_SESSION_ID}
-// Stripe reemplaza {CHECKOUT_SESSION_ID} con el ID real de la sesión.
+// IMPORTANTE: En cada Stripe Payment Link → Settings → Confirmation page:
+// Seleccioná "Redirect customers to your website" con URLs distintas por producto:
+//   Libro:    https://libro.gabiuccello.com/gracias?session_id={CHECKOUT_SESSION_ID}&type=book
+//   Bundle:   https://libro.gabiuccello.com/gracias?session_id={CHECKOUT_SESSION_ID}&type=bundle
+//   Upgrade:  https://libro.gabiuccello.com/gracias?session_id={CHECKOUT_SESSION_ID}&type=upgrade
+
+type PurchaseType = 'book' | 'bundle' | 'upgrade';
+
+const COPY: Record<PurchaseType, {
+  eyebrow: string;
+  headline: string;
+  lead: string;
+  body: string;
+  cta: string;
+  value: number;
+  contentId: string;
+}> = {
+  book: {
+    eyebrow: '✓ LIBRO CONFIRMADO',
+    headline: 'Tu libro está listo.',
+    lead: 'Revisá tu mail — te llegó el PDF, el EPUB y el acceso a la webapp.',
+    body: 'Si más adelante querés sumar el sistema de tracking de hábitos, podés hacerlo desde adentro de la app por US$10 más.',
+    cta: 'Entrar a la webapp →',
+    value: 12.99,
+    contentId: '7pasos-libro',
+  },
+  bundle: {
+    eyebrow: '✓ ACCESO TOTAL ACTIVADO',
+    headline: 'Bienvenido al sistema.',
+    lead: 'Revisá tu mail. Te llegó el acceso al libro y a la app con todo activado.',
+    body: 'El link de descarga y el acceso a la webapp están en tu bandeja de entrada. Si no lo ves, revisá spam. Arrancá hoy, no el lunes.',
+    cta: 'Entrar a la app →',
+    value: 19.99,
+    contentId: '7pasos-bundle',
+  },
+  upgrade: {
+    eyebrow: '✓ APP DESBLOQUEADA',
+    headline: 'Listo. Tracking activado de por vida.',
+    lead: 'Ya podés volver a la app — vas a ver Tracker, Objetivos y Progreso disponibles.',
+    body: 'No tenés que hacer nada más. El acceso es inmediato y es para siempre.',
+    cta: 'Volver a la app →',
+    value: 10.0,
+    contentId: '7pasos-upgrade-app',
+  },
+};
 
 function GraciasContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id') ?? '';
+  const typeParam = searchParams.get('type') ?? 'bundle';
+  const purchaseType: PurchaseType = useMemo(() => {
+    if (typeParam === 'book' || typeParam === 'upgrade' || typeParam === 'bundle') {
+      return typeParam;
+    }
+    return 'bundle';
+  }, [typeParam]);
+
+  const copy = COPY[purchaseType];
 
   useEffect(() => {
     if (!sessionId) return;
 
-    // Dispara el evento Purchase en el Pixel client-side.
-    // El event_id debe ser IDÉNTICO al que envía el webhook CAPI:
-    //   event_id = `purchase_${sessionId}`
-    // Meta detecta los dos eventos con el mismo event_id y los deduplica
-    // (cuenta una sola conversión en lugar de dos).
+    // event_id IDÉNTICO al que envía el webhook CAPI: `purchase_${sessionId}`
+    // Meta deduplica los dos eventos por event_id (1 conversión, no 2).
     const win = window as Window & { fbq?: (...args: unknown[]) => void };
     if (typeof win.fbq === 'function') {
       win.fbq('track', 'Purchase', {
-        value: 29.00,
+        value: copy.value,
         currency: 'USD',
-        content_ids: ['7pasos-acceso-total'],
+        content_ids: [copy.contentId],
         content_type: 'product',
         num_items: 1,
       }, { eventID: `purchase_${sessionId}` });
     }
-  }, [sessionId]);
+  }, [sessionId, copy.value, copy.contentId]);
 
   return (
     <div style={{
@@ -53,7 +100,7 @@ function GraciasContent() {
           marginBottom: '24px',
           textTransform: 'uppercase' as const,
         }}>
-          ✓ COMPRA CONFIRMADA
+          {copy.eyebrow}
         </div>
 
         <h1 style={{
@@ -63,7 +110,7 @@ function GraciasContent() {
           lineHeight: '1',
           marginBottom: '24px',
         }}>
-          Bienvenido al sistema.
+          {copy.headline}
         </h1>
 
         <p style={{
@@ -74,7 +121,7 @@ function GraciasContent() {
           marginBottom: '16px',
           lineHeight: '1.5',
         }}>
-          Revisá tu mail. Te llegó el acceso al libro y a la app.
+          {copy.lead}
         </p>
 
         <p style={{
@@ -83,12 +130,11 @@ function GraciasContent() {
           marginBottom: '48px',
           lineHeight: '1.6',
         }}>
-          El link de descarga y el acceso a la webapp están en tu bandeja de entrada.
-          Si no lo ves, revisá spam. Arrancá hoy, no el lunes.
+          {copy.body}
         </p>
 
         <a
-          href="/login"
+          href={purchaseType === 'upgrade' ? '/dashboard' : '/login'}
           style={{
             display: 'inline-block',
             background: '#f97316',
@@ -102,7 +148,7 @@ function GraciasContent() {
             textDecoration: 'none',
           }}
         >
-          Entrar a la app →
+          {copy.cta}
         </a>
       </div>
     </div>

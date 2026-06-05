@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="7 Pasos para Cambiar Tu Vida — El sistema de 180 días para latinos que quieren resultados, no promesas gringas. Libro + app · $29 USD · Acceso de por vida.">
+<meta name="description" content="7 Pasos para Cambiar Tu Vida — El sistema de 180 días para latinos. Libro desde US$12,99 · Bundle libro + app de tracking US$19,99 · Acceso de por vida.">
 <title>7 Pasos · El sistema de 180 días para cambiar tu vida</title>
 
 <!-- OG / Social -->
@@ -673,66 +673,100 @@ section {
   background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
   pointer-events: none;
 }
-.offer-card {
-  max-width: 640px;
-  margin: 0 auto;
-  background: var(--bg-2);
-  border: 2px solid var(--accent);
-  border-radius: 12px;
-  padding: 48px 40px;
+.offer-grid {
   position: relative;
   z-index: 1;
-  box-shadow: 0 30px 80px -20px rgba(249, 115, 22, 0.2);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 980px;
+  margin: 0 auto;
+  align-items: stretch;
 }
-.offer-card::before {
-  content: 'OFERTA · ACCESO DE POR VIDA';
+@media (max-width: 760px) {
+  .offer-grid { grid-template-columns: 1fr; gap: 32px; }
+}
+.offer-card {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 36px 28px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.offer-card.recommended {
+  border: 2px solid var(--accent);
+  box-shadow: 0 30px 80px -20px rgba(249, 115, 22, 0.25);
+  transform: translateY(-8px);
+}
+@media (max-width: 760px) {
+  .offer-card.recommended { transform: none; }
+}
+.offer-card.recommended::before {
+  content: 'RECOMENDADO · AHORRÁS US$3';
   position: absolute;
-  top: -12px;
+  top: -14px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--accent);
   color: #0a0a0a;
   font-family: var(--mono);
   font-size: 11px;
-  letter-spacing: 0.2em;
-  padding: 6px 16px;
+  letter-spacing: 0.18em;
+  padding: 6px 14px;
   font-weight: 700;
   border-radius: 4px;
+  white-space: nowrap;
 }
+.offer-card-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+}
+.offer-card.recommended .offer-card-tag { color: var(--accent); }
 .offer-title {
   font-family: var(--display);
-  font-size: clamp(28px, 4vw, 38px);
+  font-size: clamp(24px, 3vw, 30px);
   letter-spacing: -0.02em;
-  text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   line-height: 1.05;
 }
 .offer-subtitle {
-  text-align: center;
   font-family: var(--serif);
   font-style: italic;
   color: var(--ink-2);
-  font-size: 18px;
-  margin-bottom: 36px;
+  font-size: 15px;
+  margin-bottom: 28px;
+  line-height: 1.4;
 }
 .offer-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 36px;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex: 1;
 }
 .offer-list li {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  font-size: 15px;
+  gap: 12px;
+  font-size: 14px;
   color: var(--ink);
   line-height: 1.4;
-  padding: 12px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--line);
 }
 .offer-list li:last-child { border-bottom: none; }
+.offer-list li.muted { color: var(--ink-3); }
+.offer-list li.muted::before {
+  background: var(--line-2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%238b8b85' stroke='%238b8b85' stroke-width='2' d='M4 4l8 8M12 4l-8 8'/%3E%3C/svg%3E");
+}
 .offer-list li::before {
   content: '';
   flex-shrink: 0;
@@ -755,37 +789,37 @@ section {
   font-weight: 400;
 }
 .offer-price {
-  text-align: center;
-  margin-bottom: 28px;
-}
-.offer-price-old {
-  font-family: var(--mono);
-  color: var(--ink-3);
-  font-size: 16px;
-  text-decoration: line-through;
-  margin-bottom: 4px;
-  display: block;
+  margin-bottom: 20px;
 }
 .offer-price-now {
   font-family: var(--display);
-  font-size: clamp(56px, 9vw, 84px);
-  color: var(--accent);
+  font-size: clamp(44px, 6vw, 64px);
+  color: var(--ink);
   line-height: 1;
   letter-spacing: -0.04em;
 }
+.offer-card.recommended .offer-price-now { color: var(--accent); }
 .offer-price-now sup {
   font-size: 0.4em;
   color: var(--ink-2);
   vertical-align: top;
-  margin-right: 2px;
+  margin-right: 4px;
+  font-family: var(--mono);
+}
+.offer-price-ars {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 6px;
+  letter-spacing: 0.05em;
 }
 .offer-price-meta {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--ink-3);
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .offer-cta {
   display: block;
@@ -793,10 +827,10 @@ section {
   text-align: center;
   background: var(--accent);
   color: #0a0a0a;
-  padding: 22px;
+  padding: 18px;
   border-radius: 6px;
   font-family: var(--display);
-  font-size: 18px;
+  font-size: 16px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   text-decoration: none;
@@ -804,9 +838,28 @@ section {
   transition: all 0.25s;
   cursor: pointer;
 }
+.offer-card:not(.recommended) .offer-cta {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line-2);
+}
+.offer-card:not(.recommended) .offer-cta:hover {
+  background: var(--accent);
+  color: #0a0a0a;
+  border-color: var(--accent);
+}
 .offer-cta:hover {
   background: #0a0a0a;
   color: var(--accent);
+}
+.offer-upsell-note {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 14px;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
 }
 .offer-trust {
   margin-top: 24px;
@@ -1045,7 +1098,7 @@ section {
      ANNOUNCEMENT BAR
      ============================================ -->
 <div class="announcement">
-  <span class="pulse"></span>OFERTA DE LANZAMIENTO · ACCESO DE POR VIDA · USD $29
+  <span class="pulse"></span>LIBRO US$12,99 · BUNDLE LIBRO + APP US$19,99 · ACCESO DE POR VIDA
 </div>
 
 <!-- ============================================
@@ -1073,7 +1126,7 @@ section {
     </p>
     <div class="hero-cta-row">
       <a href="#oferta" class="cta-primary">
-        Empezar por $29 <span class="arrow">→</span>
+        Empezar desde US$12,99 <span class="arrow">→</span>
       </a>
       <span class="cta-meta">PAGO ÚNICO · ACCESO DE POR VIDA · GARANTÍA 180 DÍAS</span>
     </div>
@@ -1225,10 +1278,8 @@ section {
       <div class="science-chart">
         <div class="science-chart-title">DÍAS HASTA AUTOMATIZAR UN HÁBITO</div>
         <div class="bar-chart">
-          <div class="bar muted" style="height: 12%"><span class="bar-label">21 días</span></div>
-          <div class="bar" style="height: 38%"><span class="bar-label">66 días</span></div>
-          <div class="bar" style="height: 56%"><span class="bar-label">90 días</span></div>
-          <div class="bar" style="height: 100%"><span class="bar-label">180 días</span></div>
+          <div class="bar muted" style="height: 32%"><span class="bar-label">21 días</span></div>
+          <div class="bar" style="height: 100%"><span class="bar-label">66 días</span></div>
         </div>
         <div style="margin-top: 36px;">
           <div class="chart-legend">
@@ -1261,19 +1312,16 @@ section {
     <div class="forwhom-grid">
 
       <div class="forwhom-card">
-        <div class="forwhom-card-tag">PERFIL 01</div>
         <h3 class="forwhom-card-title">El Profesional Estancado</h3>
         <p class="forwhom-card-text">Tenés un trabajo que funciona pero te aburre. Sentís que estás desperdiciando potencial. Querés alto rendimiento, pero no sabés por dónde arrancar.</p>
       </div>
 
       <div class="forwhom-card">
-        <div class="forwhom-card-tag">PERFIL 02</div>
         <h3 class="forwhom-card-title">La Persona Saturada</h3>
         <p class="forwhom-card-text">Leíste todo: Hábitos Atómicos, Padre Rico, El Poder del Ahora. Tenés el conocimiento. Lo que te falta es un sistema cerrado que te diga qué hacer hoy, sin pensar.</p>
       </div>
 
       <div class="forwhom-card">
-        <div class="forwhom-card-tag">PERFIL 03</div>
         <h3 class="forwhom-card-title">El Que Quiere el Control</h3>
         <p class="forwhom-card-text">Estás cansado de culpar al país, al trabajo, a la familia. Querés tomar las riendas. Esto te da la arquitectura para hacerlo en 180 días.</p>
       </div>
@@ -1294,70 +1342,134 @@ section {
   <div class="container">
     <div style="text-align: center; margin-bottom: 64px; position: relative; z-index: 1;">
       <span class="section-eyebrow" style="justify-content: center;">La oferta</span>
-      <h2 class="section-title">Todo lo que llevás.</h2>
+      <h2 class="section-title">Elegí cómo arrancar.</h2>
+      <p class="section-lead" style="margin: 24px auto 0; text-align: center;">
+        Empezás con el libro. Si después querés el sistema de tracking de por vida, lo sumás por US$10 más desde adentro de la app.
+      </p>
     </div>
 
-    <div class="offer-card">
-      <h3 class="offer-title">7 Pasos · Acceso Total</h3>
-      <p class="offer-subtitle">El libro + la app + acceso de por vida.</p>
+    <div class="offer-grid">
 
-      <ul class="offer-list">
-        <li>
-          <div>
-            <strong>El libro completo (PDF + ePub)</strong>
-            <span>Los 7 pasos. 35 minutos de lectura. Para volver cuantas veces quieras.</span>
-          </div>
-        </li>
-        <li>
-          <div>
-            <strong>App de tracking · 180 días</strong>
-            <span>Tu programa diario. Tracker de victorias. Streak visible. Lectura matutina.</span>
-          </div>
-        </li>
-        <li>
-          <div>
-            <strong>Tus 10 objetivos guiados</strong>
-            <span>Sistema paso a paso para escribirlos en presente. Cuatro categorías.</span>
-          </div>
-        </li>
-        <li>
-          <div>
-            <strong>Bonus · Lectura matutina automática</strong>
-            <span>Te llegan tus objetivos cada mañana. Lo último que tu cerebro programa al despertar.</span>
-          </div>
-        </li>
-        <li>
-          <div>
-            <strong>Acceso de por vida · sin suscripción</strong>
-            <span>Pagás una vez. Listo. Updates incluidos.</span>
-          </div>
-        </li>
-      </ul>
+      <!-- ──────────── TIER 1: LIBRO SOLO ──────────── -->
+      <div class="offer-card">
+        <div class="offer-card-tag">Tier 01 · Solo libro</div>
+        <h3 class="offer-title">El Libro</h3>
+        <p class="offer-subtitle">35 minutos de lectura. El sistema completo, en tu cabeza.</p>
 
-      <div class="offer-price">
-        <span class="offer-price-old">Antes $147 USD</span>
-        <div class="offer-price-now"><sup>USD</sup>29</div>
-        <div class="offer-price-meta">PAGO ÚNICO · ACCESO INMEDIATO</div>
+        <ul class="offer-list">
+          <li>
+            <div>
+              <strong>Libro completo (PDF + ePub)</strong>
+              <span>Los 7 pasos. Para descargar y leer offline.</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>Lectura online en la webapp</strong>
+              <span>Lo leés desde el navegador, marcás tu progreso paso a paso.</span>
+            </div>
+          </li>
+          <li class="muted">
+            <div>
+              <strong>App de tracking de hábitos</strong>
+              <span>No incluida. La podés sumar después por US$10.</span>
+            </div>
+          </li>
+          <li class="muted">
+            <div>
+              <strong>10 objetivos guiados + streak</strong>
+              <span>No incluido. Requiere la app de tracking.</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>Acceso de por vida</strong>
+              <span>Pagás una vez. Sin suscripción.</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="offer-price">
+          <div class="offer-price-now"><sup>US$</sup>12,99</div>
+          <div class="offer-price-ars">≈ $18.667 ARS</div>
+          <div class="offer-price-meta">PAGO ÚNICO · ACCESO INMEDIATO</div>
+        </div>
+
+        <a href="https://buy.stripe.com/aFa4gyajf0Og5Bk7rq7IY00"
+           class="offer-cta"
+           data-product="book"
+           data-value="12.99">
+          Quiero solo el libro &gt;
+        </a>
+
+        <p class="offer-upsell-note">
+          ¿Cambiás de idea? Sumás la app de por vida después por US$10 desde adentro.
+        </p>
       </div>
 
-      <!-- ============================================
-           STRIPE PAYMENT LINK
-           1. Reemplazá REEMPLAZAR_CON_TU_LINK con tu Payment Link de Stripe
-           2. En Stripe Dashboard → Payment Link → After payment:
-              Redirect to: https://libro.gabiuccello.com/gracias?session_id={CHECKOUT_SESSION_ID}
-           El JS de abajo agrega fbp/fbc automáticamente para CAPI.
-           ============================================ -->
-      <a href="https://buy.stripe.com/aFa4gyajf0Og5Bk7rq7IY00"
-         class="offer-cta"
-         id="cta-comprar">
-        Empezar mi transformación &gt;
-      </a>
+      <!-- ──────────── TIER 2: BUNDLE (RECOMENDADO) ──────────── -->
+      <div class="offer-card recommended">
+        <div class="offer-card-tag">Tier 02 · Recomendado</div>
+        <h3 class="offer-title">Libro + App de tracking</h3>
+        <p class="offer-subtitle">Todo incluido. Lo más conveniente para arrancar los 180 días.</p>
 
-      <div class="offer-trust">
-        <span>Pago seguro</span>
-        <span>Acceso inmediato</span>
-        <span>Garantía 180 días</span>
+        <ul class="offer-list">
+          <li>
+            <div>
+              <strong>Libro completo (PDF + ePub)</strong>
+              <span>Para descargar, leer offline o desde la webapp.</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>App de tracking · de por vida</strong>
+              <span>Tracker diario, streak visible, victorias por categoría.</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>10 objetivos guiados</strong>
+              <span>Sistema paso a paso del Paso 2. Cuatro categorías sagradas.</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>Calendario de progreso 180 días</strong>
+              <span>Cada día contado, cada victoria documentada.</span>
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong>Acceso de por vida + updates</strong>
+              <span>Pagás una vez. Listo. Para siempre.</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="offer-price">
+          <div class="offer-price-now"><sup>US$</sup>19,99</div>
+          <div class="offer-price-ars">≈ $28.726 ARS</div>
+          <div class="offer-price-meta">PAGO ÚNICO · ACCESO INMEDIATO</div>
+        </div>
+
+        <a href="REEMPLAZAR_CON_LINK_BUNDLE"
+           class="offer-cta"
+           data-product="bundle"
+           data-value="19.99">
+          Empezar con todo &gt;
+        </a>
+
+        <p class="offer-upsell-note">
+          Ahorrás US$3 vs comprar libro + app por separado.
+        </p>
       </div>
+
+    </div>
+
+    <div class="offer-trust" style="margin-top: 40px;">
+      <span>Pago seguro</span>
+      <span>Acceso inmediato</span>
+      <span>Garantía 180 días</span>
     </div>
   </div>
 </section>
@@ -1371,9 +1483,9 @@ section {
       180
       <small>DÍAS</small>
     </div>
-    <h2 class="guarantee-title">Si en 180 días no sos otra persona,<br>te devuelvo todo.</h2>
+    <h2 class="guarantee-title">Si aplicaste el sistema y no funcionó,<br>te devuelvo todo.</h2>
     <p class="guarantee-text">
-      Sin formularios eternos, sin preguntas hostiles. Si aplicaste el sistema y no ves cambios reales, escribís un mail y te devuelvo los 29 dólares. Punto. El riesgo es mío, no tuyo.
+      Si dentro de los 180 días desde tu compra aplicaste el sistema y no ves cambios reales, escribime un mail con tu progreso (qué pasos completaste, qué intentaste) y devuelvo el monto completo. El riesgo es mío, no tuyo. La garantía es para quienes ejecutan, no para coleccionar productos.
     </p>
   </div>
 </section>
@@ -1389,16 +1501,23 @@ section {
     </div>
 
     <details class="faq-item">
+      <summary>¿Cuál es la diferencia entre el libro solo y el bundle?</summary>
+      <div class="faq-answer">
+        El libro solo (US$12,99) te da el PDF, el ePub y acceso a leerlo desde la webapp. El bundle (US$19,99) incluye además la app de tracking de hábitos: el tracker diario de victorias, los 10 objetivos guiados y el calendario de progreso de 180 días. Todo de por vida. Si empezás con el libro solo, podés sumar la app después por US$10 desde adentro de la webapp.
+      </div>
+    </details>
+
+    <details class="faq-item">
       <summary>¿Cómo recibo el libro y la app después de comprar?</summary>
       <div class="faq-answer">
-        Apenas se confirma el pago, te llega un mail con el link de descarga del libro (PDF + ePub) y un acceso a la webapp con tu cuenta ya creada. El acceso es inmediato, no hay que esperar.
+        Apenas se confirma el pago, te llega un mail con el link de descarga del libro (PDF + ePub) y un acceso a la webapp con tu cuenta ya creada. Si compraste el bundle, ya tenés todo activado. Si compraste el libro solo, vas a ver el contenido del libro y un botón para sumar la app cuando quieras.
       </div>
     </details>
 
     <details class="faq-item">
       <summary>¿Tengo que pagar una suscripción mensual?</summary>
       <div class="faq-answer">
-        No. Pagás 29 dólares una sola vez y tenés acceso de por vida al libro, a la app, y a las actualizaciones futuras. Sin cargos automáticos, sin sorpresas.
+        No. Pagás una sola vez y tenés acceso de por vida, sea US$12,99 por el libro o US$19,99 por el bundle. Sin cargos automáticos, sin sorpresas. Lo que pagues es lo único que pagás.
       </div>
     </details>
 
@@ -1424,9 +1543,16 @@ section {
     </details>
 
     <details class="faq-item">
-      <summary>¿La garantía de 180 días es real?</summary>
+      <summary>¿La garantía de 180 días es real? ¿Qué requiere?</summary>
       <div class="faq-answer">
-        Real. Si dentro de los 180 días desde tu compra aplicaste el sistema y no funcionó para vos, escribís a soporte y te devuelvo los 29 dólares completos. Sin debate, sin cuestionarios. La idea es que el riesgo lo asumo yo.
+        Real, pero con una condición: pido que hayas aplicado el sistema. Si dentro de los 180 días me escribís mostrándome tu progreso (qué pasos completaste, qué intentaste, qué pasos marcaste como leídos en la app) y a pesar de eso no funcionó, devuelvo el monto completo. No funciona si compraste y no abriste nunca el libro: la garantía es para quienes ejecutan, no un mecanismo de devolución automática. Es honesto y filtra a quien no aplica.
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>¿Puedo empezar con el libro y comprar la app después?</summary>
+      <div class="faq-answer">
+        Sí, esa es justamente la idea del tier 01. Comprás el libro por US$12,99, lo leés, lo aplicás. Cuando estés listo, entrás a la webapp y desde adentro hay un botón para sumar la app por US$10 más. Total: US$22,99 (US$3 más que si lo agarrabas todo junto desde el principio), pero podés probar el sistema antes de comprometerte.
       </div>
     </details>
 
@@ -1453,7 +1579,7 @@ section {
       35 minutos de lectura para diseñar los próximos 6 meses. La pregunta es si vas a abrirlo hoy o el lunes que viene.
     </p>
     <a href="#oferta" class="cta-primary">
-      Empezar por $29 <span class="arrow">→</span>
+      Empezar desde US$12,99 <span class="arrow">→</span>
     </a>
   </div>
 </section>
@@ -1486,10 +1612,10 @@ section {
 <script>
 (function () {
   // ── Configuración ──────────────────────────────────────────
-  // Reemplazá REEMPLAZAR_CON_TU_LINK con tu Stripe Payment Link real
-  // El link debe estar configurado en Stripe con success_url:
+  // Los Payment Links de Stripe se leen del atributo href de cada CTA.
+  // Cada link debe estar configurado en Stripe con success_url:
   //   https://libro.gabiuccello.com/gracias?session_id={CHECKOUT_SESSION_ID}
-  var STRIPE_BASE = 'https://buy.stripe.com/aFa4gyajf0Og5Bk7rq7IY00';
+  // El JS agrega ?client_reference_id=fbp||fbc para Meta CAPI deduplication.
   // ───────────────────────────────────────────────────────────
 
   function getCookie(name) {
@@ -1518,13 +1644,19 @@ section {
     return '';
   }
 
-  function buildStripeUrl() {
+  function buildClientRef() {
     var fbp = getFbp();
     var fbc = getFbc();
-    // Formato: "fbp||fbc" — el webhook lo parsea con split('||')
     var parts = [fbp, fbc].filter(Boolean);
-    if (!parts.length) return STRIPE_BASE;
-    return STRIPE_BASE + '?client_reference_id=' + encodeURIComponent(parts.join('||'));
+    return parts.join('||');
+  }
+
+  // Toma un link base de Stripe y le agrega client_reference_id sin pisarlo
+  function appendClientRef(baseUrl) {
+    var ref = buildClientRef();
+    if (!ref) return baseUrl;
+    var sep = baseUrl.indexOf('?') >= 0 ? '&' : '?';
+    return baseUrl + sep + 'client_reference_id=' + encodeURIComponent(ref);
   }
 
   function genEventId(prefix) {
@@ -1537,44 +1669,59 @@ section {
     } catch (e) { /* silencioso */ }
   }
 
-  // Actualiza todos los links de Stripe con fbp/fbc del momento
+  // Guarda el href original de cada CTA y agrega client_reference_id dinámico
   function patchStripeLinks() {
-    var url = buildStripeUrl();
     document.querySelectorAll('a[href*="buy.stripe.com"]').forEach(function (link) {
-      link.href = url;
+      if (!link.dataset.stripeBase) {
+        link.dataset.stripeBase = link.href.split('?')[0];
+      }
+      link.href = appendClientRef(link.dataset.stripeBase);
     });
   }
 
-  // ViewContent — indica a Meta que el usuario vio el producto
-  // Se dispara a los 3 segundos para filtrar rebotes inmediatos
+  // ViewContent — usa el valor del CTA del bundle como referencia del producto principal
   function fireViewContent() {
     safePixel('ViewContent', {
-      value: 29.00,
+      value: 19.99,
       currency: 'USD',
-      content_ids: ['7pasos-acceso-total'],
+      content_ids: ['7pasos-bundle'],
       content_type: 'product',
       content_name: '7 Pasos para Cambiar Tu Vida',
     }, { eventID: genEventId('vc') });
   }
 
-  // InitiateCheckout — se dispara cuando el usuario hace click en comprar
-  // El event_id se usa para deduplicación con el evento CAPI Purchase
+  // InitiateCheckout — params dinámicos según el data-product/data-value del CTA
   function handleCheckoutClick(e) {
-    e.preventDefault();
     var link = this;
+    var product = link.dataset.product || 'unknown';
+    var value = parseFloat(link.dataset.value || '0');
+    var contentId =
+      product === 'book' ? '7pasos-libro' :
+      product === 'bundle' ? '7pasos-bundle' :
+      '7pasos-acceso-total';
+
+    // Si el link no está configurado todavía, bloqueamos
+    var base = link.dataset.stripeBase || link.href;
+    if (base.indexOf('REEMPLAZAR') >= 0) {
+      e.preventDefault();
+      alert('Este botón todavía no está activo. Probá el otro o escribime a hola@gabiuccello.com');
+      return;
+    }
+
+    e.preventDefault();
     var eventId = genEventId('ick');
 
     safePixel('InitiateCheckout', {
-      value: 29.00,
+      value: value,
       currency: 'USD',
-      content_ids: ['7pasos-acceso-total'],
+      content_ids: [contentId],
       content_type: 'product',
       num_items: 1,
     }, { eventID: eventId });
 
     // Dar 150ms para que el Pixel envíe el evento antes de navegar
     setTimeout(function () {
-      window.location.href = buildStripeUrl();
+      window.location.href = appendClientRef(base);
     }, 150);
   }
 
@@ -1585,7 +1732,7 @@ section {
     setTimeout(patchStripeLinks, 1500);
 
     // Asignar handler a todos los CTAs que van a Stripe
-    document.querySelectorAll('a[href*="buy.stripe.com"]').forEach(function (link) {
+    document.querySelectorAll('a[href*="buy.stripe.com"], a[href*="REEMPLAZAR"]').forEach(function (link) {
       link.addEventListener('click', handleCheckoutClick);
     });
 
