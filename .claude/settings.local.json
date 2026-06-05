@@ -10,7 +10,8 @@
       "Bash(npx next lint)",
       "WebFetch(domain:gym-counter-seven.vercel.app)",
       "Bash(npm run dev:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(node .claude/skills/impeccable/scripts/context.mjs)"
     ]
   }
 }
