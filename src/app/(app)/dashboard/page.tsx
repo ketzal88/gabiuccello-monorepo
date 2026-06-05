@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useObjectives } from "@/hooks/use-objectives";
 import { updateOnboardingPhase, type Objective } from "@/lib/firestore";
-import { Card, CardContent } from "@/components/ui/card";
-import { ProgressBar } from "@/components/ui/progress-bar";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
-import { Input } from "@/components/ui/input";
-import { calculateProgress, formatDateES, getEndDate, getObjectiveLabel, cn } from "@/lib/utils";
+import {
+  calculateProgress,
+  formatDateES,
+  getEndDate,
+  getObjectiveLabel,
+  cn,
+} from "@/lib/utils";
 import {
   Zap,
   Target,
@@ -28,53 +29,28 @@ import {
   ChevronRight,
   BookOpen,
   Lock,
-  Sparkles,
   ArrowRight,
   Download,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
-function DownloadsBanner() {
-  return (
-    <div className="flex flex-col gap-2">
-      <a
-        href="/libro/7-pasos-para-cambiar-tu-vida.pdf"
-        download
-        className="flex items-center gap-3 p-3 bg-stone-50 border border-stone-200 rounded-xl hover:bg-stone-100 transition-colors no-underline"
-      >
-        <div className="w-8 h-8 rounded-lg bg-stone-200 flex items-center justify-center flex-shrink-0">
-          <Download size={15} className="text-stone-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-stone-700 leading-tight">Descargar PDF</p>
-          <p className="text-xs text-stone-400">Para leer offline</p>
-        </div>
-      </a>
-      <a
-        href="/libro/7-pasos-para-cambiar-tu-vida.epub"
-        download
-        className="flex items-center gap-3 p-3 bg-stone-50 border border-stone-200 rounded-xl hover:bg-stone-100 transition-colors no-underline"
-      >
-        <div className="w-8 h-8 rounded-lg bg-stone-200 flex items-center justify-center flex-shrink-0">
-          <Download size={15} className="text-stone-600" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-stone-700 leading-tight">Descargar EPUB</p>
-          <p className="text-xs text-stone-400">Para Kindle, Apple Books, Kobo</p>
-        </div>
-      </a>
-    </div>
-  );
+// ─── Step configuration ────────────────────────────────────────────────
+
+interface StepStyle {
+  icon: LucideIcon;
+  text: string;
+  bg: string;
 }
 
-const stepIcons: { icon: LucideIcon; color: string; bg: string }[] = [
-  { icon: Zap, color: "text-amber-500", bg: "bg-amber-50" },
-  { icon: Target, color: "text-blue-500", bg: "bg-blue-50" },
-  { icon: Users, color: "text-violet-500", bg: "bg-violet-50" },
-  { icon: Eye, color: "text-rose-500", bg: "bg-rose-50" },
-  { icon: Dumbbell, color: "text-emerald-500", bg: "bg-emerald-50" },
-  { icon: HeartPulse, color: "text-cyan-500", bg: "bg-cyan-50" },
-  { icon: Feather, color: "text-indigo-500", bg: "bg-indigo-50" },
+const stepStyles: StepStyle[] = [
+  { icon: Zap, text: "text-paso-1", bg: "bg-paso-1/10" },
+  { icon: Target, text: "text-paso-2", bg: "bg-paso-2/10" },
+  { icon: Users, text: "text-paso-3", bg: "bg-paso-3/10" },
+  { icon: Eye, text: "text-paso-4", bg: "bg-paso-4/10" },
+  { icon: Dumbbell, text: "text-paso-5", bg: "bg-paso-5/10" },
+  { icon: HeartPulse, text: "text-paso-6", bg: "bg-paso-6/10" },
+  { icon: Feather, text: "text-paso-7", bg: "bg-paso-7/10" },
 ];
 
 const stepNames = [
@@ -97,191 +73,379 @@ const stepSummaries = [
   "Perdoná, soltá, sé Suiza. Tu familia primero",
 ];
 
-// ─── Reading Phase ───
+// ─── Brand UI primitives ───────────────────────────────────────────────
 
-function ReadingDashboard({ stepsRead }: { stepsRead: number[] }) {
-  const readCount = stepsRead.length;
-  const nextStep = getNextUnreadStep(stepsRead);
-
+function PasoLabel({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-display font-bold text-stone-900">
-          Tu camino de 7 pasos
-        </h1>
-        <p className="text-stone-500 mt-1">
-          Leé cada paso para transformar tu vida en 180 días
-        </p>
-      </div>
-
-      {/* Reading Progress */}
-      <Card className="border-victoria-200 bg-gradient-to-br from-white to-victoria-50/30">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-victoria-100 flex items-center justify-center">
-                <BookOpen size={20} className="text-victoria-600" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-stone-900">Progreso de lectura</h2>
-                <p className="text-sm text-stone-500">{readCount} de 7 pasos leídos</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-3xl font-bold text-victoria-500">
-                {Math.round((readCount / 7) * 100)}%
-              </span>
-            </div>
-          </div>
-          <ProgressBar value={readCount} max={7} showLabel={false} size="lg" />
-        </CardContent>
-      </Card>
-
-      {/* Objectives prompt after paso 2 */}
-      {stepsRead.includes(2) && !stepsRead.includes(7) && (
-        <Link href="/objetivos">
-          <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-2xl hover:bg-blue-100 transition-colors cursor-pointer">
-            <Target size={20} className="text-blue-500" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-blue-700">
-                Ya leiste el Paso 2 sobre objetivos. ¿Queres escribir los tuyos?
-              </p>
-              <p className="text-xs text-blue-500 mt-0.5">Podés hacerlo ahora o después de terminar la lectura</p>
-            </div>
-            <ArrowRight size={16} className="text-blue-400" />
-          </div>
-        </Link>
+    <span
+      className={cn(
+        "font-brand-mono text-[10px] uppercase tracking-[0.18em] text-brand-ink-3",
+        className,
       )}
+    >
+      {children}
+    </span>
+  );
+}
 
-      {/* All 7 read → prompt to write objectives */}
-      {readCount === 7 && (
-        <Card className="border-victoria-300 bg-gradient-to-br from-victoria-50 to-victoria-100/50">
-          <CardContent className="pt-6 pb-6 text-center">
-            <Sparkles size={32} className="text-victoria-500 mx-auto mb-3" />
-            <h2 className="text-xl font-display font-bold text-stone-900 mb-2">
-              ¡Terminaste la lectura!
-            </h2>
-            <p className="text-stone-600 mb-5 max-w-md mx-auto">
-              Ahora es momento de escribir tus 10 objetivos para los próximos 180 días.
-            </p>
-            <Link href="/objetivos">
-              <Button size="lg">
-                <Target size={18} />
-                Escribir mis objetivos
-                <ArrowRight size={16} />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+function AccentLabel({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "font-brand-mono text-[10px] uppercase tracking-[0.18em] text-brand-accent",
+        className,
       )}
+    >
+      {children}
+    </span>
+  );
+}
 
-      <DownloadsBanner />
-
-      {/* Intro card */}
-      <div>
-        <h2 className="text-lg font-semibold text-stone-900 mb-4">Los 7 Pasos</h2>
-        <div className="mb-3">
-          <Link href="/intro">
-            <Card hover className="border-amber-200 bg-amber-50/50">
-              <CardContent className="py-4 px-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-100 text-xl">
-                    🔥
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs font-semibold text-amber-600 uppercase">
-                      Introducción
-                    </span>
-                    <h3 className="font-semibold text-stone-900 text-sm">
-                      Antes de empezar
-                    </h3>
-                    <p className="text-xs text-stone-500 mt-0.5">
-                      Por qué este es un libro de matemática, no de autoayuda
-                    </p>
-                  </div>
-                  <ChevronRight size={16} className="text-stone-300 flex-shrink-0" />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-      </div>
-
-      {/* 7 Steps Timeline */}
-      <div>
-        <div className="space-y-3">
-          {stepNames.map((name, i) => {
-            const stepNum = i + 1;
-            const { icon: Icon, color, bg } = stepIcons[i];
-            const isRead = stepsRead.includes(stepNum);
-            const isNext = stepNum === nextStep;
-            const isLocked = !isRead && !isNext;
-
-            return (
-              <Link
-                key={i}
-                href={isLocked ? "#" : `/paso/${stepNum}`}
-                onClick={(e) => isLocked && e.preventDefault()}
-              >
-                <Card
-                  hover={!isLocked}
-                  className={cn(
-                    "transition-all",
-                    isNext && "border-victoria-300 ring-2 ring-victoria-100",
-                    isLocked && "opacity-50 cursor-default"
-                  )}
-                >
-                  <CardContent className="py-4 px-5">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={cn(
-                          "w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0",
-                          isLocked ? "bg-stone-100" : bg
-                        )}
-                      >
-                        {isLocked ? (
-                          <Lock size={18} className="text-stone-300" />
-                        ) : (
-                          <Icon size={20} className={color} />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-stone-400 uppercase">
-                            Paso {stepNum}
-                          </span>
-                          {isRead && (
-                            <CheckCircle2 size={14} className="text-victoria-500" />
-                          )}
-                          {isNext && (
-                            <span className="text-xs bg-victoria-100 text-victoria-700 px-2 py-0.5 rounded-full font-medium">
-                              Siguiente
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-stone-900 text-sm">
-                          {name}
-                        </h3>
-                        <p className="text-xs text-stone-500 mt-0.5 line-clamp-1">
-                          {stepSummaries[i]}
-                        </p>
-                      </div>
-                      {!isLocked && (
-                        <ChevronRight size={16} className="text-stone-300 flex-shrink-0" />
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+function ProgressTrack({ pct }: { pct: number }) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  return (
+    <div
+      className="h-1.5 w-full overflow-hidden rounded-full bg-brand-line"
+      role="progressbar"
+      aria-valuenow={clamped}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
+      <div
+        className="h-full bg-brand-accent transition-[width] duration-700 ease-out motion-reduce:transition-none"
+        style={{ width: `${clamped}%` }}
+      />
     </div>
   );
 }
 
-// ─── Objectives Phase ───
+function PrimaryButton({
+  children,
+  onClick,
+  disabled,
+  type = "button",
+  className,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: "button" | "submit";
+  className?: string;
+}) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "inline-flex items-center justify-center gap-2.5 rounded-md border-2 border-brand-accent bg-brand-accent px-6 py-3.5",
+        "font-brand-display text-sm uppercase tracking-wide text-brand-bg",
+        "transition-colors duration-200 motion-reduce:transition-none",
+        "hover:bg-brand-bg hover:text-brand-accent",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg",
+        "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-brand-accent disabled:hover:text-brand-bg",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GhostButton({
+  children,
+  onClick,
+  type = "button",
+  className,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  type?: "button" | "submit";
+  className?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-md border-2 border-brand-line-2 bg-transparent px-6 py-3.5",
+        "font-brand-body text-sm font-semibold text-brand-ink",
+        "transition-colors duration-200 motion-reduce:transition-none",
+        "hover:border-brand-ink-3 hover:bg-brand-bg-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink-3",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Panel({
+  children,
+  className,
+  accent = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border bg-brand-bg-2 p-6",
+        accent ? "border-brand-accent/50" : "border-brand-line",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function DownloadsRow() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <a
+        href="/libro/7-pasos-para-cambiar-tu-vida.pdf"
+        download
+        className="flex items-center gap-3 rounded-lg border border-brand-line bg-brand-bg-2 p-3 no-underline transition-colors hover:border-brand-line-2"
+      >
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-brand-line">
+          <Download size={15} className="text-brand-ink-2" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-brand-ink leading-tight">Descargar PDF</p>
+          <p className="text-xs text-brand-ink-3">Para leer offline</p>
+        </div>
+      </a>
+      <a
+        href="/libro/7-pasos-para-cambiar-tu-vida.epub"
+        download
+        className="flex items-center gap-3 rounded-lg border border-brand-line bg-brand-bg-2 p-3 no-underline transition-colors hover:border-brand-line-2"
+      >
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-brand-line">
+          <Download size={15} className="text-brand-ink-2" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-brand-ink leading-tight">Descargar EPUB</p>
+          <p className="text-xs text-brand-ink-3">Para Kindle, Apple Books, Kobo</p>
+        </div>
+      </a>
+    </div>
+  );
+}
+
+function StepRow({
+  stepNum,
+  isRead,
+  isNext,
+  isLocked,
+}: {
+  stepNum: number;
+  isRead: boolean;
+  isNext: boolean;
+  isLocked: boolean;
+}) {
+  const { icon: Icon, text, bg } = stepStyles[stepNum - 1];
+  const name = stepNames[stepNum - 1];
+  const summary = stepSummaries[stepNum - 1];
+  const padded = stepNum.toString().padStart(2, "0");
+
+  return (
+    <Link
+      href={isLocked ? "#" : `/paso/${stepNum}`}
+      onClick={(e) => isLocked && e.preventDefault()}
+      className={cn(
+        "group flex items-center gap-4 rounded-lg border bg-brand-bg-2 p-4 no-underline transition-all duration-200 motion-reduce:transition-none",
+        isLocked
+          ? "cursor-default border-brand-line opacity-40"
+          : isNext
+          ? "border-brand-accent/60 hover:border-brand-accent"
+          : "border-brand-line hover:border-brand-line-2 hover:translate-x-1",
+      )}
+    >
+      <div
+        className={cn(
+          "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md",
+          isLocked ? "bg-brand-line" : bg,
+        )}
+      >
+        {isLocked ? (
+          <Lock size={18} className="text-brand-ink-3" />
+        ) : (
+          <Icon size={20} className={text} />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <PasoLabel>Paso {padded}</PasoLabel>
+          {isRead && <CheckCircle2 size={13} className="text-brand-accent" />}
+          {isNext && (
+            <span className="rounded bg-brand-accent px-1.5 py-0.5 font-brand-mono text-[9px] uppercase tracking-wider text-brand-bg">
+              Siguiente
+            </span>
+          )}
+        </div>
+        <h3 className="mt-1 font-brand-display text-base leading-tight text-brand-ink">
+          {name}
+        </h3>
+        <p className="mt-1 font-brand-body text-sm leading-snug text-brand-ink-3 line-clamp-1">
+          {summary}
+        </p>
+      </div>
+      {!isLocked && (
+        <ChevronRight
+          size={16}
+          className="flex-shrink-0 text-brand-ink-3 transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none"
+        />
+      )}
+    </Link>
+  );
+}
+
+// ─── Reading phase ─────────────────────────────────────────────────────
+
+function ReadingDashboard({ stepsRead }: { stepsRead: number[] }) {
+  const readCount = stepsRead.length;
+  const nextStep = getNextUnreadStep(stepsRead);
+  const pct = Math.round((readCount / 7) * 100);
+
+  return (
+    <div className="space-y-8">
+      <header>
+        <AccentLabel>Tu camino</AccentLabel>
+        <h1 className="mt-3 font-brand-display text-3xl leading-[0.95] text-brand-ink md:text-4xl">
+          7 pasos. 180 días.
+        </h1>
+        <p className="mt-3 max-w-prose font-brand-body leading-relaxed text-brand-ink-2">
+          Una batalla a la vez. Leé un paso, automatizalo, pasá al siguiente.
+        </p>
+      </header>
+
+      <Panel>
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <PasoLabel>Progreso de lectura</PasoLabel>
+            <p className="mt-2 font-brand-body text-brand-ink">
+              {readCount} de 7 pasos leídos
+            </p>
+          </div>
+          <span className="font-brand-display text-4xl leading-none text-brand-accent md:text-5xl">
+            {pct}
+            <span className="text-2xl text-brand-ink-3">%</span>
+          </span>
+        </div>
+        <ProgressTrack pct={pct} />
+      </Panel>
+
+      {stepsRead.includes(2) && !stepsRead.includes(7) && (
+        <Link
+          href="/objetivos"
+          className="block rounded-lg border border-brand-accent/30 bg-brand-bg-2 p-4 no-underline transition-colors hover:border-brand-accent/60"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-brand-accent/15">
+              <Target size={18} className="text-brand-accent" />
+            </div>
+            <div className="flex-1">
+              <p className="font-brand-body text-sm font-semibold text-brand-ink">
+                Ya leíste el Paso 2 sobre objetivos.
+              </p>
+              <p className="mt-0.5 text-xs text-brand-ink-3">
+                Podés escribir los tuyos ahora o después de terminar la lectura.
+              </p>
+            </div>
+            <ArrowRight size={16} className="flex-shrink-0 text-brand-accent" />
+          </div>
+        </Link>
+      )}
+
+      {readCount === 7 && (
+        <Panel accent className="text-center">
+          <AccentLabel>Lectura completa</AccentLabel>
+          <h2 className="mt-3 font-brand-display text-2xl leading-tight text-brand-ink md:text-3xl">
+            Terminaste los 7 pasos.
+          </h2>
+          <p className="mx-auto mt-3 max-w-md font-brand-body leading-relaxed text-brand-ink-2">
+            Ahora escribí tus 10 objetivos para los próximos 180 días.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <Link href="/objetivos" className="no-underline">
+              <PrimaryButton>
+                <Target size={16} />
+                Escribir mis objetivos
+                <ArrowRight size={14} />
+              </PrimaryButton>
+            </Link>
+          </div>
+        </Panel>
+      )}
+
+      <DownloadsRow />
+
+      <Link
+        href="/intro"
+        className="block rounded-lg border border-brand-line bg-brand-bg-2 p-4 no-underline transition-all duration-200 hover:translate-x-1 hover:border-brand-line-2 motion-reduce:hover:translate-x-0"
+      >
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-paso-1/10 text-2xl">
+            🔥
+          </div>
+          <div className="min-w-0 flex-1">
+            <PasoLabel className="text-paso-1">Introducción</PasoLabel>
+            <h3 className="mt-1 font-brand-display text-base text-brand-ink">
+              Antes de empezar
+            </h3>
+            <p className="mt-1 font-brand-body text-sm leading-snug text-brand-ink-3">
+              Por qué este es un libro de matemática, no de autoayuda
+            </p>
+          </div>
+          <ChevronRight size={16} className="flex-shrink-0 text-brand-ink-3" />
+        </div>
+      </Link>
+
+      <section>
+        <PasoLabel>Los 7 pasos</PasoLabel>
+        <div className="mt-4 space-y-2">
+          {Array.from({ length: 7 }, (_, i) => {
+            const stepNum = i + 1;
+            const isRead = stepsRead.includes(stepNum);
+            const isNext = stepNum === nextStep;
+            const isLocked = !isRead && !isNext;
+            return (
+              <StepRow
+                key={stepNum}
+                stepNum={stepNum}
+                isRead={isRead}
+                isNext={isNext}
+                isLocked={isLocked}
+              />
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ─── Objectives phase ──────────────────────────────────────────────────
 
 function ObjectivesDashboard({
   user,
@@ -293,6 +457,7 @@ function ObjectivesDashboard({
   refreshProfile: () => Promise<void>;
 }) {
   const router = useRouter();
+  const pct = Math.round((objectiveCount / 10) * 100);
 
   const handleActivateTracker = async () => {
     await updateOnboardingPhase(user.uid, "tracking");
@@ -301,121 +466,111 @@ function ObjectivesDashboard({
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-display font-bold text-stone-900">
-          Escribí tus 10 objetivos
+    <div className="space-y-8">
+      <header>
+        <AccentLabel>Paso 2 · Ejercicio</AccentLabel>
+        <h1 className="mt-3 font-brand-display text-3xl leading-[0.95] text-brand-ink md:text-4xl">
+          10 objetivos. 180 días.
         </h1>
-        <p className="text-stone-500 mt-1">
-          El paso 2 te pide 10 objetivos escritos en presente, específicos y medibles
+        <p className="mt-3 max-w-prose font-brand-body leading-relaxed text-brand-ink-2">
+          Escritos en presente, específicos y medibles. Sin esto, el método no arranca.
         </p>
-      </div>
+      </header>
 
-      {/* Progress */}
-      <Card className="border-victoria-200">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                <Target size={20} className="text-blue-600" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-stone-900">Tus objetivos</h2>
-                <p className="text-sm text-stone-500">{objectiveCount} de 10</p>
-              </div>
-            </div>
-            <span className="text-3xl font-bold text-victoria-500">
-              {objectiveCount}/10
-            </span>
+      <Panel>
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <PasoLabel>Tus objetivos</PasoLabel>
+            <p className="mt-2 font-brand-body text-brand-ink">{objectiveCount} de 10</p>
           </div>
-          <ProgressBar value={objectiveCount} max={10} showLabel={false} size="lg" />
-        </CardContent>
-      </Card>
+          <span className="font-brand-display text-4xl leading-none text-brand-accent md:text-5xl">
+            {objectiveCount}
+            <span className="text-2xl text-brand-ink-3">/10</span>
+          </span>
+        </div>
+        <ProgressTrack pct={pct} />
+      </Panel>
 
-      {/* CTA */}
       {objectiveCount >= 10 ? (
-        <Card className="border-victoria-300 bg-gradient-to-br from-victoria-50 to-victoria-100/50">
-          <CardContent className="pt-6 pb-6 text-center">
-            <Sparkles size={32} className="text-victoria-500 mx-auto mb-3" />
-            <h2 className="text-xl font-display font-bold text-stone-900 mb-2">
-              ¡Tus objetivos están listos!
-            </h2>
-            <p className="text-stone-600 mb-5 max-w-md mx-auto">
-              Ahora activá tu tracker de 180 días para empezar a sumar victorias diarias.
-            </p>
-            <Button size="lg" onClick={handleActivateTracker}>
-              <Flame size={18} />
-              Activar tracker de 180 días
-              <ArrowRight size={16} />
-            </Button>
-          </CardContent>
-        </Card>
+        <Panel accent className="text-center">
+          <AccentLabel>Objetivos listos</AccentLabel>
+          <h2 className="mt-3 font-brand-display text-2xl leading-tight text-brand-ink md:text-3xl">
+            Activá el tracker de 180 días.
+          </h2>
+          <p className="mx-auto mt-3 max-w-md font-brand-body leading-relaxed text-brand-ink-2">
+            A partir de hoy, cada victoria diaria suma. El cerebro construye el circuito.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <PrimaryButton onClick={handleActivateTracker}>
+              <Flame size={16} />
+              Activar tracker
+              <ArrowRight size={14} />
+            </PrimaryButton>
+          </div>
+        </Panel>
       ) : (
-        <Link href="/objetivos">
-          <Card hover className="border-blue-200 bg-blue-50/50">
-            <CardContent className="pt-6 pb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Plus size={24} className="text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-stone-900">
-                    {objectiveCount === 0
-                      ? "Escribir mi primer objetivo"
-                      : `Seguir escribiendo (${10 - objectiveCount} restantes)`}
-                  </h3>
-                  <p className="text-sm text-stone-500 mt-0.5">
-                    Recordá: en presente, específicos y medibles
-                  </p>
-                </div>
-                <ArrowRight size={18} className="text-stone-400" />
-              </div>
-            </CardContent>
-          </Card>
+        <Link
+          href="/objetivos"
+          className="block rounded-lg border border-brand-accent/40 bg-brand-bg-2 p-5 no-underline transition-colors hover:border-brand-accent/70"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-brand-accent/15">
+              <Plus size={20} className="text-brand-accent" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-brand-display text-base text-brand-ink">
+                {objectiveCount === 0
+                  ? "Escribir tu primer objetivo"
+                  : `${10 - objectiveCount} objetivos restantes`}
+              </h3>
+              <p className="mt-1 font-brand-body text-sm leading-snug text-brand-ink-3">
+                En presente, específicos, medibles.
+              </p>
+            </div>
+            <ArrowRight size={18} className="flex-shrink-0 text-brand-accent" />
+          </div>
         </Link>
       )}
 
-      {/* Tip */}
-      <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
-        <BookOpen size={18} className="text-amber-500 mt-0.5 flex-shrink-0" />
-        <p className="text-sm text-amber-700">
-          <strong>Tip:</strong> si necesitas repasar, podés volver a leer cualquier paso
-          desde la sección &ldquo;Los 7 Pasos&rdquo; más abajo.
+      <div className="flex items-start gap-3 rounded-lg border border-brand-line bg-brand-bg-2 p-4">
+        <BookOpen size={18} className="mt-0.5 flex-shrink-0 text-brand-accent" />
+        <p className="font-brand-body text-sm leading-relaxed text-brand-ink-2">
+          Si necesitás repasar, podés volver a leer cualquier paso desde &ldquo;Los 7 pasos&rdquo; más abajo.
         </p>
       </div>
 
-      {/* Steps for rereading */}
-      <div>
-        <h2 className="text-lg font-semibold text-stone-900 mb-4">Repasar los 7 Pasos</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {stepNames.map((name, i) => {
-            const { icon: Icon, color, bg } = stepIcons[i];
+      <section>
+        <PasoLabel>Repasar los 7 pasos</PasoLabel>
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {Array.from({ length: 7 }, (_, i) => {
+            const stepNum = i + 1;
+            const { icon: Icon, text, bg } = stepStyles[i];
             return (
-              <Link key={i} href={`/paso/${i + 1}`}>
-                <Card hover className="h-full">
-                  <CardContent className="pt-4 pb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", bg)}>
-                        <Icon size={16} className={color} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-xs text-stone-400">Paso {i + 1}</span>
-                        <h3 className="font-medium text-stone-900 text-sm">{name}</h3>
-                      </div>
-                      <ChevronRight size={14} className="text-stone-300" />
-                    </div>
-                  </CardContent>
-                </Card>
+              <Link
+                key={stepNum}
+                href={`/paso/${stepNum}`}
+                className="flex items-center gap-3 rounded-lg border border-brand-line bg-brand-bg-2 p-3.5 no-underline transition-all duration-200 hover:translate-x-1 hover:border-brand-line-2 motion-reduce:hover:translate-x-0"
+              >
+                <div className={cn("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md", bg)}>
+                  <Icon size={17} className={text} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <PasoLabel>Paso {stepNum.toString().padStart(2, "0")}</PasoLabel>
+                  <h4 className="mt-0.5 truncate font-brand-display text-sm text-brand-ink">
+                    {stepNames[i]}
+                  </h4>
+                </div>
+                <ChevronRight size={14} className="flex-shrink-0 text-brand-ink-3" />
               </Link>
             );
           })}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
 
-// ─── Tracking Phase (original dashboard) ───
+// ─── Tracking phase ────────────────────────────────────────────────────
 
 function TrackingDashboard({ activeObjectives }: { activeObjectives: Objective[] }) {
   const { profile } = useAuth();
@@ -430,6 +585,16 @@ function TrackingDashboard({ activeObjectives }: { activeObjectives: Objective[]
   const endDate = getEndDate(startDate);
   const todayVictories = todayLog?.totalVictories || 0;
   const stepsRead = profile?.stepsRead || [];
+  const firstName = profile?.displayName?.split(" ")[0];
+
+  useEffect(() => {
+    if (!showAddVictory) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [showAddVictory]);
 
   const handleAddVictory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -443,202 +608,237 @@ function TrackingDashboard({ activeObjectives }: { activeObjectives: Objective[]
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-display font-bold text-stone-900">
-          {profile?.displayName ? `Hola, ${profile.displayName.split(" ")[0]}` : "Tu Dashboard"}
+    <div className="space-y-8">
+      <header>
+        <AccentLabel>{formatDateES(new Date())}</AccentLabel>
+        <h1 className="mt-3 font-brand-display text-3xl leading-[0.95] text-brand-ink md:text-4xl">
+          {firstName ? `Hola, ${firstName}.` : "Tu día de hoy."}
         </h1>
-        <p className="text-stone-500 mt-1">
-          {formatDateES(new Date())}
+        <p className="mt-3 max-w-prose font-brand-body leading-relaxed text-brand-ink-2">
+          Cada micro-victoria que sumás hoy es oxitocina que el cerebro registra.
         </p>
-      </div>
+      </header>
 
-      {/* Progress Bar 180 Days */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <span className="text-4xl font-bold text-stone-900">Día {dayNumber}</span>
-              <span className="text-lg text-stone-400 ml-2">de 180</span>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-victoria-500">{progress}%</div>
-              <div className="text-xs text-stone-400">completado</div>
-            </div>
-          </div>
-          <ProgressBar value={dayNumber} max={180} showLabel={false} size="lg" />
-          <div className="flex justify-between mt-2 text-xs text-stone-400">
-            <span>{formatDateES(startDate)}</span>
-            <span>{formatDateES(endDate)}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Today's Card */}
-      <Card className="border-victoria-200 bg-gradient-to-br from-white to-victoria-50/30">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-victoria-100 flex items-center justify-center">
-                <Trophy size={20} className="text-victoria-600" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-stone-900">Hoy</h2>
-                <p className="text-sm text-stone-500">Tus victorias del día</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-3xl font-bold text-victoria-500">
-                {todayVictories}
+      <Panel>
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <PasoLabel>Programa 180 días</PasoLabel>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-brand-display text-5xl leading-none text-brand-ink md:text-6xl">
+                {dayNumber}
               </span>
-              <p className="text-xs text-stone-400">
-                {todayVictories === 1 ? "victoria" : "victorias"}
+              <span className="font-brand-display text-xl leading-none text-brand-ink-3">
+                / 180
+              </span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="font-brand-display text-3xl leading-none text-brand-accent">
+              {progress}%
+            </div>
+            <div className="mt-1 font-brand-mono text-[10px] uppercase tracking-wider text-brand-ink-3">
+              completado
+            </div>
+          </div>
+        </div>
+        <ProgressTrack pct={progress} />
+        <div className="mt-3 flex justify-between font-brand-mono text-[10px] uppercase tracking-wider text-brand-ink-3">
+          <span>{formatDateES(startDate)}</span>
+          <span>{formatDateES(endDate)}</span>
+        </div>
+      </Panel>
+
+      <Panel accent>
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md bg-brand-accent/15">
+              <Trophy size={20} className="text-brand-accent" />
+            </div>
+            <div>
+              <PasoLabel>Hoy</PasoLabel>
+              <p className="mt-0.5 font-brand-body text-sm text-brand-ink-2">
+                Tus victorias del día
               </p>
             </div>
           </div>
-
-          {todayLog?.victories && todayLog.victories.length > 0 && (
-            <div className="space-y-2 mb-4">
-              {todayLog.victories.map((v) => (
-                <div
-                  key={v.id}
-                  className="flex items-center gap-3 p-3 bg-white rounded-xl border border-stone-100"
-                >
-                  <CheckCircle2 size={16} className="text-victoria-500 flex-shrink-0" />
-                  <span className="text-sm text-stone-700 flex-1">{v.description}</span>
-                  <span className="text-xs text-stone-400 bg-stone-50 px-2 py-0.5 rounded-full max-w-[140px] truncate">
-                    {getObjectiveLabel(activeObjectives, v.category)}
-                  </span>
-                </div>
-              ))}
+          <div className="text-right">
+            <div className="font-brand-display text-4xl leading-none text-brand-accent md:text-5xl">
+              {todayVictories}
             </div>
-          )}
+            <div className="mt-1 font-brand-mono text-[10px] uppercase tracking-wider text-brand-ink-3">
+              {todayVictories === 1 ? "victoria" : "victorias"}
+            </div>
+          </div>
+        </div>
 
-          <Button
-            onClick={() => setShowAddVictory(true)}
-            className="w-full"
-            size="lg"
-          >
-            <Plus size={18} />
-            Sumar victoria
-          </Button>
-        </CardContent>
-      </Card>
+        {todayLog?.victories && todayLog.victories.length > 0 && (
+          <ul className="mb-5 space-y-2">
+            {todayLog.victories.map((v) => (
+              <li
+                key={v.id}
+                className="flex items-center gap-3 rounded-md border border-brand-line bg-brand-bg p-3"
+              >
+                <CheckCircle2 size={15} className="flex-shrink-0 text-brand-accent" />
+                <span className="flex-1 font-brand-body text-sm text-brand-ink">
+                  {v.description}
+                </span>
+                <span className="max-w-[140px] truncate rounded bg-brand-line px-2 py-1 font-brand-mono text-[10px] uppercase tracking-wider text-brand-ink-3">
+                  {getObjectiveLabel(activeObjectives, v.category)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {/* Streak indicator */}
+        <PrimaryButton onClick={() => setShowAddVictory(true)} className="w-full">
+          <Plus size={16} />
+          Sumar victoria
+        </PrimaryButton>
+      </Panel>
+
       {todayVictories >= 5 && (
-        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
-          <Flame size={20} className="text-amber-500" />
-          <p className="text-sm font-medium text-amber-700">
-            {todayVictories} victorias hoy. Tu cerebro está generando oxitocina en cadena.
+        <div className="flex items-center gap-3 rounded-lg border border-brand-accent/40 bg-brand-bg-2 p-4">
+          <Flame size={20} className="flex-shrink-0 text-brand-accent" />
+          <p className="font-brand-body text-sm text-brand-ink-2">
+            <span className="font-semibold text-brand-ink">{todayVictories} victorias hoy</span>. Tu cerebro está generando oxitocina en cadena.
           </p>
         </div>
       )}
 
-      <DownloadsBanner />
+      <DownloadsRow />
 
-      {/* 7 Steps Grid */}
-      <div>
-        <h2 className="text-lg font-semibold text-stone-900 mb-4">Los 7 Pasos</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {stepNames.map((name, i) => {
-            const { icon: Icon, color, bg } = stepIcons[i];
-            const isRead = stepsRead.includes(i + 1);
+      <section>
+        <PasoLabel>Los 7 pasos</PasoLabel>
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {Array.from({ length: 7 }, (_, i) => {
+            const stepNum = i + 1;
+            const { icon: Icon, text, bg } = stepStyles[i];
+            const isRead = stepsRead.includes(stepNum);
             return (
-              <Link key={i} href={`/paso/${i + 1}`}>
-                <Card hover className="h-full">
-                  <CardContent className="pt-5 pb-5">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={cn(
-                          "w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0",
-                          bg
-                        )}
-                      >
-                        <Icon size={20} className={color} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-stone-400 uppercase">
-                            Paso {i + 1}
-                          </span>
-                          {isRead && (
-                            <CheckCircle2 size={14} className="text-victoria-500" />
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-stone-900 text-sm">
-                          {name}
-                        </h3>
-                        <p className="text-xs text-stone-500 mt-0.5 line-clamp-2">
-                          {stepSummaries[i]}
-                        </p>
-                      </div>
-                      <ChevronRight size={16} className="text-stone-300 flex-shrink-0 mt-1" />
-                    </div>
-                  </CardContent>
-                </Card>
+              <Link
+                key={stepNum}
+                href={`/paso/${stepNum}`}
+                className="flex items-start gap-3 rounded-lg border border-brand-line bg-brand-bg-2 p-4 no-underline transition-all duration-200 hover:translate-x-1 hover:border-brand-line-2 motion-reduce:hover:translate-x-0"
+              >
+                <div className={cn("flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md", bg)}>
+                  <Icon size={18} className={text} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <PasoLabel>Paso {stepNum.toString().padStart(2, "0")}</PasoLabel>
+                    {isRead && <CheckCircle2 size={12} className="text-brand-accent" />}
+                  </div>
+                  <h3 className="mt-0.5 font-brand-display text-sm leading-tight text-brand-ink">
+                    {stepNames[i]}
+                  </h3>
+                  <p className="mt-1 font-brand-body text-xs leading-snug text-brand-ink-3 line-clamp-2">
+                    {stepSummaries[i]}
+                  </p>
+                </div>
+                <ChevronRight size={14} className="mt-1 flex-shrink-0 text-brand-ink-3" />
               </Link>
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* Add Victory Modal */}
-      <Modal
-        isOpen={showAddVictory}
-        onClose={() => setShowAddVictory(false)}
-        title="Sumar victoria"
-      >
-        <form onSubmit={handleAddVictory} className="space-y-4 mt-2">
-          <Input
-            label="¿Qué lograste?"
-            placeholder="Ej: Tomé agua en vez de gaseosa"
-            value={victoryDesc}
-            onChange={(e) => setVictoryDesc(e.target.value)}
-            required
-            autoFocus
-          />
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-stone-700">
-              Objetivo relacionado
-            </label>
-            <select
-              value={victoryCategory}
-              onChange={(e) => setVictoryCategory(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-victoria-500 focus:border-transparent"
-              required
-            >
-              <option value="" disabled>
-                Seleccioná un objetivo
-              </option>
-              {activeObjectives.map((obj, i) => (
-                <option key={obj.id} value={obj.id}>
-                  #{i + 1}: {obj.text}
-                </option>
-              ))}
-            </select>
+      {showAddVictory && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-brand-bg/80 backdrop-blur-sm animate-fade-in sm:items-center"
+          onClick={() => !submitting && setShowAddVictory(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-victory-title"
+            className="w-full rounded-t-xl border border-brand-line bg-brand-bg-2 p-6 sm:max-w-md sm:rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2
+                id="add-victory-title"
+                className="font-brand-display text-xl text-brand-ink"
+              >
+                Sumar victoria
+              </h2>
+              <button
+                onClick={() => setShowAddVictory(false)}
+                disabled={submitting}
+                aria-label="Cerrar"
+                className="text-brand-ink-3 transition-colors hover:text-brand-ink disabled:opacity-50"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleAddVictory} className="space-y-4">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="victory-desc"
+                  className="block font-brand-mono text-[10px] uppercase tracking-wider text-brand-ink-3"
+                >
+                  ¿Qué lograste?
+                </label>
+                <input
+                  id="victory-desc"
+                  type="text"
+                  placeholder="Ej: Tomé agua en vez de gaseosa"
+                  value={victoryDesc}
+                  onChange={(e) => setVictoryDesc(e.target.value)}
+                  required
+                  autoFocus
+                  className="w-full rounded-md border border-brand-line bg-brand-bg px-3.5 py-2.5 font-brand-body text-brand-ink placeholder:text-brand-ink-3 transition-colors focus:border-brand-accent focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="victory-category"
+                  className="block font-brand-mono text-[10px] uppercase tracking-wider text-brand-ink-3"
+                >
+                  Objetivo relacionado
+                </label>
+                <select
+                  id="victory-category"
+                  value={victoryCategory}
+                  onChange={(e) => setVictoryCategory(e.target.value)}
+                  required
+                  className="w-full rounded-md border border-brand-line bg-brand-bg px-3.5 py-2.5 font-brand-body text-brand-ink transition-colors focus:border-brand-accent focus:outline-none"
+                >
+                  <option value="" disabled>
+                    Seleccioná un objetivo
+                  </option>
+                  {activeObjectives.map((obj, i) => (
+                    <option key={obj.id} value={obj.id}>
+                      #{i + 1}: {obj.text}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <GhostButton
+                  type="button"
+                  onClick={() => setShowAddVictory(false)}
+                  disabled={submitting}
+                  className="flex-1"
+                >
+                  Cancelar
+                </GhostButton>
+                <PrimaryButton
+                  type="submit"
+                  disabled={submitting || !victoryCategory || !victoryDesc.trim()}
+                  className="flex-1"
+                >
+                  {submitting ? "Guardando..." : "Guardar"}
+                </PrimaryButton>
+              </div>
+            </form>
           </div>
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setShowAddVictory(false)}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" className="flex-1" disabled={submitting || !victoryCategory}>
-              {submitting ? "Guardando..." : "Guardar"}
-            </Button>
-          </div>
-        </form>
-      </Modal>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Helper ───
+// ─── Helpers ──────────────────────────────────────────────────────────
 
 function getNextUnreadStep(stepsRead: number[]): number {
   for (let i = 1; i <= 7; i++) {
@@ -647,7 +847,7 @@ function getNextUnreadStep(stepsRead: number[]): number {
   return 7;
 }
 
-// ─── Main Dashboard ───
+// ─── Main entry ───────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { profile, user, loading, refreshProfile } = useAuth();
@@ -655,8 +855,8 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-3 border-victoria-500 border-t-transparent rounded-full animate-spin" />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-line border-t-brand-accent" />
       </div>
     );
   }
@@ -678,5 +878,9 @@ export default function DashboardPage() {
     );
   }
 
-  return <TrackingDashboard activeObjectives={objectives.filter((o) => o.status === "active")} />;
+  return (
+    <TrackingDashboard
+      activeObjectives={objectives.filter((o) => o.status === "active")}
+    />
+  );
 }
