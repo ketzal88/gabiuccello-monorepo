@@ -12,7 +12,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 //   RESEND_FROM_EMAIL           →  dominio verificado en Resend
 //   ADMIN_NOTIFY_EMAIL          →  email del admin (default: gabriel@worker.ar)
 //   SLACK_BOT_TOKEN             →  xoxb-xxx (bot con scope chat:write)
-//   SLACK_7PASOS_CHANNEL_ID     →  default C0AK7HANGQY (#7-pasos)
+//   SLACK_BUSINESS_CHANNEL_ID   →  C0AK7HANGQY (#7-pasos)
 //   FIREBASE_ADMIN_CLIENT_EMAIL →  service account client_email
 //   FIREBASE_ADMIN_PRIVATE_KEY  →  service account private_key (con \n literales)
 
@@ -24,7 +24,7 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'hola@gabiuccello.com';
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFY_EMAIL ?? 'gabriel@worker.ar';
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
-const SLACK_CHANNEL = process.env.SLACK_7PASOS_CHANNEL_ID ?? 'C0AK7HANGQY';
+const SLACK_CHANNEL = process.env.SLACK_BUSINESS_CHANNEL_ID;
 const CAPI_URL = `https://graph.facebook.com/v20.0/${PIXEL_ID}/events`;
 const SOURCE_URL = 'https://libro.gabiuccello.com/venta';
 const APP_URL = 'https://libro.gabiuccello.com';

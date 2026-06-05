@@ -72,6 +72,12 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
       onboardingPhase: "reading",
     };
     await setDoc(userRef, profile);
+    // Notificar signup al canal de Slack (fire-and-forget, server-side valida el uid).
+    fetch("/api/notify-signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: user.uid }),
+    }).catch(() => {});
     return profile;
   }
 
