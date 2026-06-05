@@ -10,6 +10,9 @@ import { Timestamp } from 'firebase-admin/firestore';
 //   META_CAPI_ACCESS_TOKEN      →  token System User Meta Business Manager
 //   RESEND_API_KEY              →  re_xxx  (resend.com → API Keys)
 //   RESEND_FROM_EMAIL           →  dominio verificado en Resend
+//   ADMIN_NOTIFY_EMAIL          →  email del admin (default: gabriel@worker.ar)
+//   SLACK_BOT_TOKEN             →  xoxb-xxx (bot con scope chat:write)
+//   SLACK_7PASOS_CHANNEL_ID     →  default C0AK7HANGQY (#7-pasos)
 //   FIREBASE_ADMIN_CLIENT_EMAIL →  service account client_email
 //   FIREBASE_ADMIN_PRIVATE_KEY  →  service account private_key (con \n literales)
 
@@ -19,8 +22,9 @@ const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'hola@gabiuccello.com';
+const ADMIN_EMAIL = process.env.ADMIN_NOTIFY_EMAIL ?? 'gabriel@worker.ar';
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
-const SLACK_CHANNEL = process.env.SLACK_ERROR_CHANNEL_ID;
+const SLACK_CHANNEL = process.env.SLACK_7PASOS_CHANNEL_ID ?? 'C0AK7HANGQY';
 const CAPI_URL = `https://graph.facebook.com/v20.0/${PIXEL_ID}/events`;
 const SOURCE_URL = 'https://libro.gabiuccello.com/venta';
 const APP_URL = 'https://libro.gabiuccello.com';
@@ -135,9 +139,14 @@ export async function POST(req: NextRequest) {
   }
 
   const session = stripeEvent.data.object as Record<string, unknown>;
-  const customerDetails = session.customer_details as Record<string, string> | null;
-  const email = customerDetails?.email ?? '';
-  const name = customerDetails?.name ?? '';
+  const customerDetails = session.customer_details as Record<string, unknown> | null;
+  const email = (customerDetails?.email as string) ?? '';
+  const name = (customerDetails?.name as string) ?? '';
+  const address = (customerDetails?.address as Record<string, string> | null) ?? null;
+  const city = address?.city ?? '';
+  const stateRegion = address?.state ?? '';
+  const postalCode = address?.postal_code ?? '';
+  const country = address?.country ?? ''; // ISO 3166-1 alpha-2
   const amountTotal = typeof session.amount_total === 'number' ? session.amount_total : 0;
   const currency = typeof session.currency === 'string' ? session.currency.toUpperCase() : 'USD';
   const sessionId = typeof session.id === 'string' ? session.id : '';
@@ -155,17 +164,97 @@ export async function POST(req: NextRequest) {
   const purchaseType = await detectPurchaseType(sessionId);
   console.log(`Webhook: purchaseType=${purchaseType}, sessionId=${sessionId}, uid=${upgradeUid ?? 'n/a'}`);
 
-  // ── 1. Meta CAPI ─────────────────────────────────────────────────────────
+  // ── 1. Firebase: resolver UID ANTES del CAPI (para usarlo como external_id) ─
+  let loginLink = APP_URL;
+  let isUpgrade = false;
+  let firebaseUid: string | undefined;
+
+  if (purchaseType === 'upgrade' && upgradeUid) {
+    isUpgrade = true;
+    firebaseUid = upgradeUid;
+    try {
+      await adminDb.doc(`users/${upgradeUid}`).set({
+        subscription: {
+          status: 'active',
+          tier: 'full',
+          grantedBy: 'upgrade',
+          upgradeSessionId: sessionId,
+          upgradedAt: Timestamp.now(),
+        },
+      }, { merge: true });
+      console.log(`Firebase: upgrade aplicado a UID ${upgradeUid}`);
+    } catch (err) {
+      console.error('Firebase upgrade error:', err);
+    }
+  } else if (email) {
+    const tier = purchaseType === 'book' ? 'book' : 'full';
+    try {
+      try {
+        const newUser = await adminAuth.createUser({
+          email,
+          displayName: name || undefined,
+          emailVerified: true,
+        });
+        firebaseUid = newUser.uid;
+
+        await adminDb.doc(`users/${firebaseUid}`).set({
+          displayName: name || '',
+          email,
+          createdAt: Timestamp.now(),
+          startDate: Timestamp.now(),
+          stepsRead: [],
+          onboardingPhase: 'reading',
+          subscription: {
+            status: 'active',
+            tier,
+            grantedBy: 'purchase',
+            stripeSessionId: sessionId,
+            purchasedAt: Timestamp.now(),
+          },
+        });
+        console.log(`Firebase: usuario creado ${firebaseUid} (tier: ${tier})`);
+      } catch (err: unknown) {
+        if ((err as { code?: string }).code === 'auth/email-already-exists') {
+          const existing = await adminAuth.getUserByEmail(email);
+          firebaseUid = existing.uid;
+          if (tier === 'full') {
+            await adminDb.doc(`users/${firebaseUid}`).set({
+              subscription: {
+                status: 'active',
+                tier: 'full',
+                stripeSessionId: sessionId,
+              },
+            }, { merge: true });
+          }
+          console.log(`Firebase: usuario ya existía ${firebaseUid} (tier comprado: ${tier})`);
+        } else {
+          throw err;
+        }
+      }
+
+      loginLink = await adminAuth.generatePasswordResetLink(email, {
+        url: `${APP_URL}/login`,
+      });
+    } catch (err) {
+      console.error('Firebase Admin error:', err);
+    }
+  }
+
+  // ── 2. Meta CAPI ─────────────────────────────────────────────────────────
+  // Match quality params: cuanto más mandamos, mejor matchea Meta el evento
+  // con el usuario que vio el ad. Todo lo PII va SHA-256 (trim + lowercase).
   const userData: Record<string, unknown> = {
     client_ip_address: ipAddress,
     client_user_agent: userAgent,
   };
-  if (email) {
-    userData.em = [sha256hex(email)];
-    userData.external_id = [sha256hex(email)];
-  }
-  if (firstName) userData.fn = [sha256hex(firstName.toLowerCase())];
-  if (lastName) userData.ln = [sha256hex(lastName.toLowerCase())];
+  if (email) userData.em = [sha256hex(email)];
+  if (firstName) userData.fn = [sha256hex(firstName)];
+  if (lastName) userData.ln = [sha256hex(lastName)];
+  if (city) userData.ct = [sha256hex(city)];
+  if (stateRegion) userData.st = [sha256hex(stateRegion)];
+  if (postalCode) userData.zp = [sha256hex(postalCode)];
+  if (country) userData.country = [sha256hex(country)]; // ISO-2: "AR" → sha256("ar")
+  if (firebaseUid) userData.external_id = [sha256hex(firebaseUid)];
   if (fbp) userData.fbp = fbp;
   if (fbc) userData.fbc = fbc;
 
@@ -203,94 +292,19 @@ export async function POST(req: NextRequest) {
       console.error(`Meta CAPI error (${capiRes.status}):`, await capiRes.text());
     } else {
       const result = await capiRes.json() as { events_received?: number };
-      console.log(`Meta CAPI Purchase enviado. Eventos recibidos: ${result.events_received}`);
+      console.log(`Meta CAPI Purchase enviado. Eventos recibidos: ${result.events_received}, params: ${Object.keys(userData).join(',')}`);
     }
   } catch (err) {
     console.error('Meta CAPI fetch falló:', err);
-  }
-
-  // ── 2. Firebase: upgrade vs nueva compra ──────────────────────────────────
-  let loginLink = APP_URL;
-  let isUpgrade = false;
-
-  if (purchaseType === 'upgrade' && upgradeUid) {
-    // Upgrade: buscar user existente por UID y subir tier a "full"
-    isUpgrade = true;
-    try {
-      await adminDb.doc(`users/${upgradeUid}`).set({
-        subscription: {
-          status: 'active',
-          tier: 'full',
-          grantedBy: 'upgrade',
-          upgradeSessionId: sessionId,
-          upgradedAt: Timestamp.now(),
-        },
-      }, { merge: true });
-      console.log(`Firebase: upgrade aplicado a UID ${upgradeUid}`);
-    } catch (err) {
-      console.error('Firebase upgrade error:', err);
-    }
-  } else if (email) {
-    // Compra nueva: crear cuenta o reusar existente
-    const tier = purchaseType === 'book' ? 'book' : 'full';
-    try {
-      let uid: string;
-      try {
-        const newUser = await adminAuth.createUser({
-          email,
-          displayName: name || undefined,
-          emailVerified: true,
-        });
-        uid = newUser.uid;
-
-        await adminDb.doc(`users/${uid}`).set({
-          displayName: name || '',
-          email,
-          createdAt: Timestamp.now(),
-          startDate: Timestamp.now(),
-          stepsRead: [],
-          onboardingPhase: 'reading',
-          subscription: {
-            status: 'active',
-            tier,
-            grantedBy: 'purchase',
-            stripeSessionId: sessionId,
-            purchasedAt: Timestamp.now(),
-          },
-        });
-        console.log(`Firebase: usuario creado ${uid} (tier: ${tier})`);
-      } catch (err: unknown) {
-        if ((err as { code?: string }).code === 'auth/email-already-exists') {
-          const existing = await adminAuth.getUserByEmail(email);
-          uid = existing.uid;
-          // Si ya existía y compró otra cosa, mergeamos — pero no degradamos full→book
-          if (tier === 'full') {
-            await adminDb.doc(`users/${uid}`).set({
-              subscription: {
-                status: 'active',
-                tier: 'full',
-                stripeSessionId: sessionId,
-              },
-            }, { merge: true });
-          }
-          console.log(`Firebase: usuario ya existía ${uid} (tier comprado: ${tier})`);
-        } else {
-          throw err;
-        }
-      }
-
-      loginLink = await adminAuth.generatePasswordResetLink(email, {
-        url: `${APP_URL}/login`,
-      });
-    } catch (err) {
-      console.error('Firebase Admin error:', err);
-    }
   }
 
   // ── 3. Email + Slack ──────────────────────────────────────────────────────
   await Promise.all([
     email && RESEND_API_KEY
       ? sendPurchaseEmail(email, name, loginLink, purchaseType, isUpgrade)
+      : Promise.resolve(),
+    RESEND_API_KEY
+      ? sendAdminSaleEmail({ name, email, amount: amountTotal, currency, sessionId, purchaseType })
       : Promise.resolve(),
     SLACK_BOT_TOKEN && SLACK_CHANNEL
       ? notifySlack({ name, email, amount: amountTotal, currency, sessionId, purchaseType })
@@ -325,6 +339,49 @@ async function notifySlack({ name, email, amount, currency, sessionId, purchaseT
     if (!data.ok) console.error('Slack error:', data.error);
   } catch (err) {
     console.error('Slack notify falló:', err);
+  }
+}
+
+async function sendAdminSaleEmail({ name, email, amount, currency, sessionId, purchaseType }: {
+  name: string; email: string; amount: number; currency: string; sessionId: string; purchaseType: PurchaseType;
+}): Promise<void> {
+  const value = (amount / 100).toFixed(2);
+  const label =
+    purchaseType === 'book' ? 'Libro solo' :
+    purchaseType === 'bundle' ? 'Bundle libro + app' :
+    purchaseType === 'upgrade' ? 'Upgrade app de por vida' :
+    'Compra (producto desconocido)';
+
+  const subject = `💰 Venta 7 Pasos — $${value} ${currency} (${label})`;
+  const html = `<!DOCTYPE html><html><body style="font-family:system-ui,-apple-system,sans-serif;background:#0a0a0a;color:#fafaf5;margin:0;padding:32px;">
+    <h2 style="margin:0 0 16px;color:#f97316;">Nueva venta — 7 Pasos</h2>
+    <p style="margin:0 0 8px;font-size:18px;"><strong>${label}</strong> — $${value} ${currency}</p>
+    <p style="margin:0 0 4px;">👤 ${name || 'Sin nombre'}</p>
+    <p style="margin:0 0 4px;">✉️ ${email || 'Sin email'}</p>
+    <p style="margin:16px 0 0;font-family:monospace;font-size:12px;color:#8b8b85;">Session: ${sessionId}</p>
+  </body></html>`;
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM,
+        to: [ADMIN_EMAIL],
+        subject,
+        html,
+      }),
+    });
+    if (!res.ok) {
+      console.error(`Resend admin notify error (${res.status}):`, await res.text());
+    } else {
+      console.log(`Admin notify enviado a ${ADMIN_EMAIL} (venta: ${purchaseType})`);
+    }
+  } catch (err) {
+    console.error('Resend admin notify falló:', err);
   }
 }
 

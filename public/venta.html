@@ -1960,15 +1960,10 @@ section {
     return match ? decodeURIComponent(match[2]) : '';
   }
 
-  // Genera un fbp válido si el Pixel no cargó (formato: fb.1.{ts}.{random})
+  // Solo devolvemos el _fbp real del Pixel. Un sintético no matchea con
+  // ningún otro evento en Meta y termina degradando el EMQ.
   function getFbp() {
-    var cookie = getCookie('_fbp');
-    if (cookie) return cookie;
-    var stored = sessionStorage.getItem('_fbp_fallback');
-    if (stored) return stored;
-    var generated = 'fb.1.' + Date.now() + '.' + Math.floor(Math.random() * 1e10);
-    sessionStorage.setItem('_fbp_fallback', generated);
-    return generated;
+    return getCookie('_fbp');
   }
 
   // Construye fbc desde la cookie o desde ?fbclid= en la URL
