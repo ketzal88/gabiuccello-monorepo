@@ -35,23 +35,22 @@ export default function UpgradePage() {
     if (user) setUpgradeUrl(buildUpgradeUrl(user.uid));
   }, [user]);
 
-  const handleCheckoutClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!upgradeUrl || upgradeUrl === "/upgrade") {
-      e.preventDefault();
-      alert("El link de pago aún no está configurado. Escribime a hola@gabiuccello.com y lo activo manualmente.");
-      return;
-    }
-
-    // Meta Pixel InitiateCheckout
+  const handleCheckoutClick = () => {
+    // Meta Pixel InitiateCheckout — el event_id debe matchear el del webhook CAPI
     try {
       if (typeof fbq === "function") {
-        fbq("track", "InitiateCheckout", {
-          value: 10.0,
-          currency: "USD",
-          content_ids: ["7pasos-upgrade-app"],
-          content_type: "product",
-          num_items: 1,
-        });
+        fbq(
+          "track",
+          "InitiateCheckout",
+          {
+            value: 10.0,
+            currency: "USD",
+            content_ids: ["7pasos-upgrade-app"],
+            content_type: "product",
+            num_items: 1,
+          },
+          { eventID: `ick_upgrade_${Date.now()}` }
+        );
       }
     } catch {
       // silencioso
