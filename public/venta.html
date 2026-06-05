@@ -14,7 +14,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- ============================================
      META PIXEL
@@ -47,7 +47,7 @@ fbq('track', 'PageView');
   --gold: #fbbf24;
   --line: #262626;
   --line-2: #333;
-  --serif: 'Cormorant Garamond', Georgia, serif;
+  --serif: 'Manrope', sans-serif;
   --display: 'Archivo Black', sans-serif;
   --mono: 'JetBrains Mono', monospace;
   --body: 'Manrope', sans-serif;
@@ -102,6 +102,9 @@ img { max-width: 100%; display: block; }
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.8); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .announcement .pulse { animation: none; }
 }
 
 /* ============================================
@@ -597,6 +600,216 @@ section {
 }
 
 /* ============================================
+   MATH OF 180 DAYS
+   ============================================ */
+.math {
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.math-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.math-card {
+  background: var(--bg-2);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.math-card-num {
+  font-family: var(--display);
+  font-size: 36px;
+  letter-spacing: -0.03em;
+  color: var(--accent);
+  line-height: 1;
+}
+.math-card-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.math-card-result {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin-top: 8px;
+}
+.math-card-result strong {
+  color: var(--ink);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 2px;
+}
+.math-card-result span {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.math-closing {
+  margin-top: 64px;
+  text-align: center;
+  font-family: var(--display);
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.math-closing strong {
+  color: var(--accent);
+}
+.math-closing-note {
+  display: inline-block;
+  margin-top: 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ============================================
+   FOUNDER LETTER (faceless)
+   ============================================ */
+.founder {
+  position: relative;
+}
+.founder::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 60%; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--line) 30%, var(--line) 70%, transparent 100%);
+}
+.founder .section-eyebrow {
+  display: inline-flex;
+  margin-bottom: 18px;
+}
+.founder-body {
+  margin-top: 56px;
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.75;
+  color: var(--ink-2);
+  max-width: 620px;
+}
+.founder-body p {
+  margin-bottom: 24px;
+}
+.founder-body strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.founder-body em {
+  color: var(--accent);
+  font-style: italic;
+}
+.founder-sign {
+  margin-top: 40px !important;
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--ink);
+  font-size: 19px;
+}
+.founder-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-top: -16px !important;
+}
+
+/* ============================================
+   SOCIAL PROOF 5A (honesta de lanzamiento)
+   ============================================ */
+.social {
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.social .section-eyebrow {
+  display: inline-flex;
+  margin-bottom: 18px;
+}
+.social-body {
+  margin-top: 48px;
+  max-width: 620px;
+}
+.social-lead {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--ink);
+  padding-left: 18px;
+  border-left: 3px solid var(--accent);
+  margin-bottom: 36px;
+}
+.social-intro {
+  font-size: 16px;
+  color: var(--ink-2);
+  margin-bottom: 24px;
+}
+.social-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-bottom: 36px;
+}
+.social-list li {
+  padding-left: 32px;
+  position: relative;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.social-list li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 10px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%230a0a0a' d='M6.5 11.5L3 8l1.4-1.4 2.1 2.1 5.1-5.1L13 5z'/%3E%3C/svg%3E");
+  background-size: 70%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.social-list strong {
+  display: block;
+  color: var(--ink);
+  font-weight: 700;
+  margin-bottom: 4px;
+  font-family: var(--display);
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.social-closing {
+  text-align: center;
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--ink-2);
+  margin-top: 40px;
+}
+.social-closing strong {
+  color: var(--accent);
+  display: block;
+  margin-top: 6px;
+}
+
+/* ============================================
    FOR WHOM
    ============================================ */
 .forwhom-grid {
@@ -697,7 +910,7 @@ section {
 }
 .offer-card.recommended {
   border: 2px solid var(--accent);
-  box-shadow: 0 30px 80px -20px rgba(249, 115, 22, 0.25);
+  box-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(249, 115, 22, 0.18);
   transform: translateY(-8px);
 }
 @media (max-width: 760px) {
@@ -1152,7 +1365,6 @@ section {
      ============================================ -->
 <section class="problem">
   <div class="container-tight">
-    <span class="section-eyebrow">El diagnóstico</span>
     <h2 class="section-title">No te falta motivación.<br><em>Te falta un sistema.</em></h2>
     <p class="section-lead">
       Empezamos por la verdad incómoda. Si vos seguís en el mismo lugar, no es porque seas vago, ni porque te falten ganas. Es porque te están vendiendo el problema equivocado.
@@ -1175,7 +1387,8 @@ section {
 
     <div class="problem-conclusion">
       <p class="problem-conclusion-text">
-        El problema nunca fue <span class="strike">la fuerza de voluntad</span>. <span class="new">Es la falta de orden.</span>
+        El problema nunca fue <span class="strike">la fuerza de voluntad</span>. <span class="new">Es que nadie te dio el orden.</span><br>
+        <span style="display: inline-block; margin-top: 12px; font-size: 0.55em; font-family: var(--mono); letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase;">Hasta ahora.</span>
       </p>
     </div>
   </div>
@@ -1187,7 +1400,6 @@ section {
 <section id="sistema">
   <div class="container">
     <div class="mechanism-intro">
-      <span class="section-eyebrow">El mecanismo</span>
       <h2 class="section-title">7 pasos. Una sola batalla a la vez.</h2>
       <p class="section-lead" style="margin: 24px auto 0;">
         Cada paso es un engranaje. No funcionan separados. Pero tampoco se atacan todos juntos. La transformación es secuencial, igual que aprender a manejar: primero embrague, después cambios, recién después la autopista.
@@ -1268,7 +1480,6 @@ section {
      ============================================ -->
 <section class="science">
   <div class="container">
-    <span class="section-eyebrow">El respaldo</span>
     <h2 class="section-title">El mito de los 21 días<br><em>es exactamente eso: un mito.</em></h2>
     <p class="section-lead" style="margin-bottom: 56px;">
       El estudio de Phillippa Lally (University College London) demostró que los hábitos tardan en promedio 66 días en automatizarse. Por eso 21 días no alcanzan. Por eso un programa de 7 días es estafa. Por eso 180 días no es marketing: es biología.
@@ -1302,11 +1513,64 @@ section {
 </section>
 
 <!-- ============================================
+     MATH OF 180 DAYS — Lo que suman las micro-decisiones
+     ============================================ -->
+<section class="math">
+  <div class="container">
+    <div style="max-width: 720px; margin: 0 auto 64px; text-align: center;">
+      <h2 class="section-title">Qué pasa cuando<br><em>todo cuenta.</em></h2>
+      <p class="section-lead" style="margin: 24px auto 0;">
+        No te pido que cambies tu vida de golpe. Te muestro lo que suman las micro-decisiones cuando las sostenés 180 días.
+      </p>
+    </div>
+
+    <div class="math-grid">
+
+      <div class="math-card">
+        <div class="math-card-num">30 min</div>
+        <div class="math-card-label">de lectura por día</div>
+        <p class="math-card-result">en lugar de pantalla<br><strong>12 a 15 libros en un año.</strong><br><span>Un posgrado entero en dos.</span></p>
+      </div>
+
+      <div class="math-card">
+        <div class="math-card-num">20 min</div>
+        <div class="math-card-label">de caminata por día</div>
+        <p class="math-card-result"><strong>60 horas de ejercicio en 180 días.</strong><br><span>Sin pisar un gimnasio.</span></p>
+      </div>
+
+      <div class="math-card">
+        <div class="math-card-num">-1</div>
+        <div class="math-card-label">gaseosa por día</div>
+        <p class="math-card-result"><strong>5 kilos menos de azúcar</strong><br><span>en tu cuerpo al año.</span></p>
+      </div>
+
+      <div class="math-card">
+        <div class="math-card-num">40 min</div>
+        <div class="math-card-label">de aprender algo por día</div>
+        <p class="math-card-result"><strong>120 horas de formación</strong><br><span>en seis meses.</span></p>
+      </div>
+
+      <div class="math-card">
+        <div class="math-card-num">10 min</div>
+        <div class="math-card-label">de respirar por día</div>
+        <p class="math-card-result"><strong>60 horas de cabeza en calma</strong><br><span>al año.</span></p>
+      </div>
+
+    </div>
+
+    <p class="math-closing">
+      Ninguna de estas decisiones te cambia el día.<br>
+      <strong>Todas juntas, sostenidas 180 días, te cambian la vida.</strong><br>
+      <span class="math-closing-note">Eso es "todo cuenta".</span>
+    </p>
+  </div>
+</section>
+
+<!-- ============================================
      FOR WHOM
      ============================================ -->
 <section id="para-quien">
   <div class="container">
-    <span class="section-eyebrow">Para quién es</span>
     <h2 class="section-title">Si te identificás con uno de estos tres,<br><em>esto es para vos.</em></h2>
 
     <div class="forwhom-grid">
@@ -1331,6 +1595,79 @@ section {
     <div class="forwhom-divider">
       <p class="forwhom-divider-title">No es para todos.</p>
       <p class="forwhom-divider-text">Si buscás un libro que te diga que todo va a estar bien sin esfuerzo, este no es. Acá hay trabajo. Hay disciplina. Hay 180 días de incomodidad creativa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     FOUNDER LETTER (faceless)
+     ============================================ -->
+<section class="founder">
+  <div class="container-tight">
+    <span class="section-eyebrow" style="display: inline-flex;">Por qué existe esto</span>
+    <h2 class="section-title">No vas a ver mi cara.<br><em>Y es a propósito.</em></h2>
+
+    <div class="founder-body">
+      <p>No porque tenga algo que esconder. Es porque <strong>esto no se trata de mí.</strong> Se trata de vos y de los próximos 180 días.</p>
+
+      <p>Pero te debo una verdad sobre por qué escribí este libro.</p>
+
+      <p>Durante años fui el de la mesita de luz llena de libros. <em>Hábitos Atómicos</em> subrayado, <em>Padre Rico</em> con las hojas dobladas, doce cursos empezados y ninguno terminado. Sabía perfectamente todo lo que tenía que hacer. Y no hacía nada.</p>
+
+      <p>Cada enero la misma lista. Cada marzo la misma rendición. Me decía que me faltaba disciplina, que era cuestión de querer más. Mentira. Lo que me faltaba era <strong>orden</strong>.</p>
+
+      <p>El día que dejé de buscar la próxima dosis de motivación y me senté a armar un sistema —una sola decisión por día, una sola batalla a la vez— ahí empezó a cambiar todo. No de un día para el otro. <strong>En 180 días.</strong> Que es lo que tarda de verdad.</p>
+
+      <p>Este libro es ese sistema, ordenado para que <strong>no pierdas los años que perdí yo armándolo.</strong></p>
+
+      <p>No te prometo que sea fácil. Te prometo que es claro. Y que si lo aplicás, funciona.</p>
+
+      <p class="founder-sign">Nos vemos del otro lado.</p>
+      <p class="founder-name">— El autor de 7 Pasos</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SOCIAL PROOF 5A — Versión honesta de lanzamiento
+     ============================================ -->
+<section class="social">
+  <div class="container-tight">
+    <span class="section-eyebrow" style="display: inline-flex;">Recién arranca</span>
+    <h2 class="section-title">Esto es nuevo.<br><em>Sé de los primeros.</em></h2>
+
+    <div class="social-body">
+      <p class="social-lead">
+        No te voy a inventar 500 testimonios de gente que no existe. Sería exactamente lo que este libro critica de la autoayuda de Instagram.
+      </p>
+
+      <p class="social-intro">Lo que sí te puedo dar es esto:</p>
+
+      <ul class="social-list">
+        <li>
+          <strong>El respaldo, no la promesa.</strong>
+          El programa se para sobre el estudio de Phillippa Lally (UCL): 66 días para automatizar un hábito. No es marketing, es biología.
+        </li>
+        <li>
+          <strong>El riesgo es mío.</strong>
+          Garantía de 180 días. Si aplicaste el sistema y no funcionó, te devuelvo todo. (Ver garantía abajo.)
+        </li>
+        <li>
+          <strong>Hecho en argentino, para latinos.</strong>
+          Sin jerga mística, sin promesas gringas. Sin gurúes de Instagram.
+        </li>
+      </ul>
+
+      <p class="social-closing">
+        Los testimonios van a llegar de los que arranquen ahora.<br>
+        <strong>Podés ser uno.</strong>
+      </p>
+
+      <div style="text-align: center; margin-top: 40px;">
+        <a href="#oferta" class="cta-primary">
+          Empezar desde US$12,99 <span class="arrow">→</span>
+        </a>
+      </div>
     </div>
   </div>
 </section>
@@ -1704,7 +2041,7 @@ section {
     var base = link.dataset.stripeBase || link.href;
     if (base.indexOf('REEMPLAZAR') >= 0) {
       e.preventDefault();
-      alert('Este botón todavía no está activo. Probá el otro o escribime a hola@gabiuccello.com');
+      alert('Estamos terminando el setup del bundle, está listo en horas. Mientras tanto podés empezar con el libro solo o escribirme a hola@gabiuccello.com');
       return;
     }
 
