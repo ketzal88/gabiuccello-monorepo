@@ -65,14 +65,14 @@ fbq('track', 'PageView');
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: clip; }
 body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 img { max-width: 100%; display: block; }
 
@@ -887,6 +887,7 @@ section {
 .offer {
   background: linear-gradient(180deg, var(--bg) 0%, #0d0908 100%);
   position: relative;
+  overflow: clip;
 }
 .offer::before {
   content: '';

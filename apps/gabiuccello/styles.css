@@ -7,6 +7,11 @@
   padding: 0;
 }
 
+html,
+body {
+  overflow-x: clip;
+}
+
 :root {
   --background: #ffffff;
   --foreground: hsl(220, 20%, 10%);
@@ -1570,5 +1575,17 @@ h6 {
 
   .services-grid-bottom {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile overrides re-applied at end of file to win cascade against
+   later regular rules that re-declare grid-template-columns. */
+@media (max-width: 900px) {
+  .ecosystem-grid {
+    grid-template-columns: 1fr;
+  }
+  .libro-pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
   }
 }
