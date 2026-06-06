@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/libro.html",
+      "destination": "https://libro.gabiuccello.com",
+      "permanent": true
+    },
+    {
+      "source": "/libro",
+      "destination": "https://libro.gabiuccello.com",
+      "permanent": true
+    }
+  ]
+}

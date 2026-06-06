@@ -1,34 +1,21 @@
 {
-  "name": "7-pasos-temp",
-  "version": "0.1.0",
+  "name": "gabiuccello-monorepo",
   "private": true,
+  "version": "0.0.0",
+  "description": "Monorepo del ecosistema gabiuccello.com — sitio principal + apps satélite (7 pasos, futuras herramientas).",
+  "workspaces": [
+    "apps/7-pasos"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
-    "firebase": "^12.10.0",
-    "firebase-admin": "^13.8.0",
-    "framer-motion": "^12.34.3",
-    "lucide-react": "^0.575.0",
-    "next": "14.2.35",
-    "react": "^18",
-    "react-dom": "^18",
-    "tailwind-merge": "^3.5.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.35",
-    "jszip": "^3.10.1",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "dev": "npm run dev --workspace=7-pasos",
+    "build": "npm run build --workspace=7-pasos",
+    "lint": "npm run lint --workspace=7-pasos",
+    "dev:7-pasos": "npm run dev --workspace=7-pasos",
+    "build:7-pasos": "npm run build --workspace=7-pasos",
+    "dev:gabiuccello": "npx --yes serve apps/gabiuccello -p 5500",
+    "deploy:7-pasos": "vercel --cwd apps/7-pasos",
+    "deploy:7-pasos:prod": "vercel --cwd apps/7-pasos --prod",
+    "deploy:gabiuccello": "vercel --cwd apps/gabiuccello",
+    "deploy:gabiuccello:prod": "vercel --cwd apps/gabiuccello --prod"
   }
 }

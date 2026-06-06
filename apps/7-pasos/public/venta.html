@@ -1306,6 +1306,240 @@ section {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ============================================
+   VALUE STACK (inside bundle offer card)
+   ============================================ */
+.value-stack {
+  background: rgba(249, 115, 22, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 18px 16px;
+  margin-bottom: 24px;
+}
+.value-stack-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+}
+.value-stack-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.value-stack-list li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--ink-2);
+  font-family: var(--body);
+  line-height: 1.3;
+  gap: 12px;
+}
+.value-stack-list li > span:last-child {
+  font-family: var(--mono);
+  color: var(--ink-3);
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.value-stack-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line-2);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.value-stack-total s {
+  color: var(--ink-3);
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+
+/* ============================================
+   COST OF INACTION
+   ============================================ */
+.cost {
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.cost-intro {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 56px;
+}
+.cost-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 920px;
+  margin: 0 auto;
+}
+@media (max-width: 760px) {
+  .cost-grid { grid-template-columns: 1fr; }
+}
+.cost-col {
+  background: var(--bg);
+  padding: 40px 32px;
+}
+.cost-col-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.cost-col.bad .cost-col-label { color: var(--ink-3); }
+.cost-col.good .cost-col-label { color: var(--accent); }
+.cost-col h3 {
+  font-family: var(--display);
+  font-size: clamp(22px, 3vw, 28px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+.cost-col.bad h3 { color: var(--ink-2); }
+.cost-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cost-col ul li {
+  display: flex;
+  gap: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.cost-col ul li::before {
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 14px;
+  margin-top: 2px;
+}
+.cost-col.bad ul li::before {
+  content: '×';
+  color: var(--ink-3);
+  font-size: 18px;
+  line-height: 1;
+}
+.cost-col.good ul li::before {
+  content: '→';
+  color: var(--accent);
+}
+.cost-col ul li strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+.cost-closing {
+  text-align: center;
+  margin-top: 48px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(18px, 2.4vw, 22px);
+  color: var(--ink-2);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+.cost-closing strong {
+  color: var(--ink);
+  font-style: normal;
+  font-family: var(--body);
+  font-weight: 700;
+}
+
+/* ============================================
+   NOT FOR YOU (exclusion bullets)
+   ============================================ */
+.notforyou {
+  margin-top: 64px;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 36px 32px;
+}
+.notforyou-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 14px;
+  text-align: center;
+}
+.notforyou-title {
+  font-family: var(--display);
+  font-size: clamp(22px, 3vw, 28px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.notforyou-title em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.notforyou-intro {
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--ink-2);
+  font-size: 15px;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+.notforyou-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.notforyou-list li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--bg);
+  border-left: 2px solid var(--ink-3);
+  border-radius: 4px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.notforyou-list li::before {
+  content: '×';
+  color: var(--ink-3);
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1;
+  margin-top: -2px;
+  flex-shrink: 0;
+}
+.notforyou-list li strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
 /* Mobile tweaks */
 @media (max-width: 640px) {
   section { padding: 70px 0; }
@@ -1313,6 +1547,8 @@ section {
   .offer-card { padding: 40px 24px; }
   .nav-cta { padding: 8px 14px; font-size: 11px; }
   .hero-stat { padding: 18px 8px; }
+  .cost-col { padding: 32px 24px; }
+  .notforyou { padding: 28px 20px; }
 }
 </style>
 </head>
@@ -1578,6 +1814,50 @@ section {
 </section>
 
 <!-- ============================================
+     COST OF INACTION — Lo que cuestan los próximos 180 días sin sistema
+     ============================================ -->
+<section class="cost">
+  <div class="container">
+    <div class="cost-intro">
+      <span class="section-eyebrow" style="justify-content: center;">El otro lado de la cuenta</span>
+      <h2 class="section-title">El costo real<br><em>de no hacer nada.</em></h2>
+      <p class="section-lead" style="margin: 24px auto 0;">
+        Nadie te cobra por seguir igual. Pero alguien paga. Y sos vos.
+      </p>
+    </div>
+
+    <div class="cost-grid">
+      <div class="cost-col bad">
+        <div class="cost-col-label">Si seguís como hasta hoy</div>
+        <h3>Otros 180 días<br>de la misma rutina.</h3>
+        <ul>
+          <li><span><strong>$0 invertidos</strong> en 5 libros más de autoayuda este año. Mismo resultado que los últimos 5.</span></li>
+          <li><span><strong>26 lunes</strong> empezando de nuevo. 26 jueves rindiéndote.</span></li>
+          <li><span><strong>180 noches</strong> diciéndote "mañana arranco". Otra vez.</span></li>
+          <li><span><strong>El mismo enero que viene</strong> escribiendo la misma lista de propósitos.</span></li>
+        </ul>
+      </div>
+
+      <div class="cost-col good">
+        <div class="cost-col-label">Si arrancás hoy</div>
+        <h3>180 días con<br>orden de ejecución.</h3>
+        <ul>
+          <li><span><strong>US$19,99 una vez.</strong> Menos que dos cafés con leche en Buenos Aires.</span></li>
+          <li><span><strong>35 minutos</strong> de lectura para tener el sistema entero en la cabeza.</span></li>
+          <li><span><strong>Una sola decisión por día</strong> hasta que se vuelve automática.</span></li>
+          <li><span><strong>Un enero distinto.</strong> Sin lista de propósitos. Con resultados.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="cost-closing">
+      No estás eligiendo entre <strong>gastar US$19,99</strong> o <strong>ahorrarlos</strong>.<br>
+      Estás eligiendo entre <strong>tener un sistema</strong> o <strong>seguir improvisando 180 días más</strong>.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================
      FOR WHOM
      ============================================ -->
 <section id="para-quien">
@@ -1603,9 +1883,18 @@ section {
 
     </div>
 
-    <div class="forwhom-divider">
-      <p class="forwhom-divider-title">No es para todos.</p>
-      <p class="forwhom-divider-text">Si buscás un libro que te diga que todo va a estar bien sin esfuerzo, este no es. Acá hay trabajo. Hay disciplina. Hay 180 días de incomodidad creativa.</p>
+    <div class="notforyou">
+      <div class="notforyou-eyebrow">Filtro honesto</div>
+      <h2 class="notforyou-title">Esto <em>no</em> es para vos si…</h2>
+      <p class="notforyou-intro">
+        Prefiero perder una venta que tener un reembolso con razón. Si entrás en alguno de estos, no compres.
+      </p>
+      <ul class="notforyou-list">
+        <li><span>Buscás <strong>otra dosis de motivación para el lunes.</strong> Para eso hay 500 cuentas gratis en Instagram. Este libro las critica explícitamente.</span></li>
+        <li><span>Querés un <strong>atajo sin ejecutar 180 días.</strong> Acá no hay hack ni semana milagrosa. Hay sistema y constancia.</span></li>
+        <li><span>Esperás <strong>certificado, coaching 1-a-1 o comunidad activa.</strong> No incluye nada de eso. Es libro + tracker, nada más.</span></li>
+        <li><span>Crees que un libro de <strong>US$19,99 te va a cambiar la vida solo.</strong> No te la cambia el libro. Te la cambia lo que hagas los 180 días siguientes.</span></li>
+      </ul>
     </div>
   </div>
 </section>
@@ -1793,6 +2082,21 @@ section {
             </div>
           </li>
         </ul>
+
+        <div class="value-stack">
+          <div class="value-stack-title">Valor desglosado</div>
+          <ul class="value-stack-list">
+            <li><span>Libro completo (PDF + ePub)</span><span>US$14</span></li>
+            <li><span>App de tracking de por vida</span><span>US$29</span></li>
+            <li><span>10 objetivos guiados + sistema de categorías</span><span>US$12</span></li>
+            <li><span>Calendario 180 días + streak visible</span><span>US$9</span></li>
+            <li><span>Garantía 180 días</span><span>incluida</span></li>
+          </ul>
+          <div class="value-stack-total">
+            <span>Total si lo armabas suelto</span>
+            <span><s>US$64</s></span>
+          </div>
+        </div>
 
         <div class="offer-price">
           <div class="offer-price-now"><sup>US$</sup>19,99</div>
