@@ -8,6 +8,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 //   STRIPE_SECRET_KEY           →  sk_live_xxx (para fetch de line_items)
 //   META_PIXEL_ID               →  ID numérico del Pixel
 //   META_CAPI_ACCESS_TOKEN      →  token System User Meta Business Manager
+//   GA4_API_SECRET              →  Measurement Protocol secret (GA4 → Admin → Data Streams → Web → MP API secrets)
 //   RESEND_API_KEY              →  re_xxx  (resend.com → API Keys)
 //   RESEND_FROM_EMAIL           →  dominio verificado en Resend
 //   ADMIN_NOTIFY_EMAIL          →  email del admin (default: gabriel@worker.ar)
@@ -20,12 +21,15 @@ const PIXEL_ID = process.env.META_PIXEL_ID;
 const CAPI_TOKEN = process.env.META_CAPI_ACCESS_TOKEN;
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const GA4_API_SECRET = process.env.GA4_API_SECRET;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'hola@gabiuccello.com';
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFY_EMAIL ?? 'gabriel@worker.ar';
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 const SLACK_CHANNEL = process.env.SLACK_BUSINESS_CHANNEL_ID;
 const CAPI_URL = `https://graph.facebook.com/v20.0/${PIXEL_ID}/events`;
+const GA4_MEASUREMENT_ID = 'G-702RSH626P';
+const GA4_MP_URL = `https://www.google-analytics.com/mp/collect?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`;
 const SOURCE_URL = 'https://libro.gabiuccello.com/venta';
 const APP_URL = 'https://libro.gabiuccello.com';
 const PDF_URL = 'https://libro.gabiuccello.com/libro/7-pasos-para-cambiar-tu-vida.pdf';
@@ -108,19 +112,23 @@ async function detectPurchaseType(sessionId: string): Promise<PurchaseType> {
 }
 
 // Parsea client_reference_id.
-// Formatos soportados:
-//   "fbp||fbc"               (compra inicial)
-//   "uid:UID||fbp||fbc"      (upgrade — UID del Firebase user)
-function parseClientRef(ref: string): { uid?: string; fbp?: string; fbc?: string } {
+// Formatos soportados (los tokens prefijados pueden aparecer en cualquier orden):
+//   "fbp||fbc"                          (compra inicial)
+//   "fbp||fbc||ga:CLIENT_ID"            (con GA4 client_id)
+//   "uid:UID||fbp||fbc||ga:CLIENT_ID"   (upgrade con GA4)
+// fbp y fbc son posicionales (los unicos sin prefijo).
+function parseClientRef(ref: string): { uid?: string; fbp?: string; fbc?: string; gaClientId?: string } {
   if (!ref) return {};
   const parts = ref.split('||');
   let uid: string | undefined;
+  let gaClientId: string | undefined;
   const rest: string[] = [];
   for (const p of parts) {
     if (p.startsWith('uid:')) uid = p.slice(4);
+    else if (p.startsWith('ga:')) gaClientId = p.slice(3);
     else rest.push(p);
   }
-  return { uid, fbp: rest[0], fbc: rest[1] };
+  return { uid, fbp: rest[0], fbc: rest[1], gaClientId };
 }
 
 export async function POST(req: NextRequest) {
@@ -162,7 +170,7 @@ export async function POST(req: NextRequest) {
   const sessionId = typeof session.id === 'string' ? session.id : '';
   const clientRef = typeof session.client_reference_id === 'string' ? session.client_reference_id : '';
 
-  const { uid: upgradeUid, fbp, fbc } = parseClientRef(clientRef);
+  const { uid: upgradeUid, fbp, fbc, gaClientId } = parseClientRef(clientRef);
   const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '';
   const userAgent = req.headers.get('user-agent') ?? '';
 
@@ -318,6 +326,57 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error('Meta CAPI fetch falló:', err);
+  }
+
+  // ── 2b. GA4 Measurement Protocol ─────────────────────────────────────────
+  // GA4 dedupea por transaction_id contra el evento client-side de /gracias.
+  // Si no tenemos _ga client_id (cookie no llegó via client_reference_id),
+  // usamos un sintetico determinista basado en sessionId — la compra cuenta
+  // pero queda como "direct / none" sin atribución al canal original.
+  if (GA4_API_SECRET) {
+    const gaItemName =
+      purchaseType === 'book' ? '7 Pasos - Libro' :
+      purchaseType === 'bundle' ? '7 Pasos - Bundle' :
+      purchaseType === 'upgrade' ? '7 Pasos - Upgrade App' :
+      '7 Pasos - Acceso Total';
+    const gaClient = gaClientId || `stripe.${sessionId}`;
+    const gaPayload: Record<string, unknown> = {
+      client_id: gaClient,
+      non_personalized_ads: false,
+      events: [{
+        name: 'purchase',
+        params: {
+          transaction_id: sessionId,
+          currency,
+          value: purchaseValue,
+          items: [{
+            item_id: contentId,
+            item_name: gaItemName,
+            price: purchaseValue,
+            quantity: 1,
+          }],
+        },
+      }],
+    };
+    if (firebaseUid) gaPayload.user_id = firebaseUid;
+
+    try {
+      const mpRes = await fetch(GA4_MP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gaPayload),
+      });
+      // GA4 MP devuelve 204 No Content en éxito. No tiene body.
+      if (!mpRes.ok) {
+        console.error(`GA4 MP error (${mpRes.status}):`, await mpRes.text());
+      } else {
+        console.log(`GA4 MP Purchase enviado. client_id=${gaClient === gaClientId ? 'real' : 'synthetic'}, transaction_id=${sessionId}`);
+      }
+    } catch (err) {
+      console.error('GA4 MP fetch falló:', err);
+    }
+  } else {
+    console.warn('GA4_API_SECRET no seteado — saltando GA4 Measurement Protocol Purchase');
   }
 
   // ── 3. Email + Slack ──────────────────────────────────────────────────────

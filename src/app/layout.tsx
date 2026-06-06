@@ -3,6 +3,7 @@ import { Inter, Archivo_Black, Manrope, JetBrains_Mono } from "next/font/google"
 import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { MetaPixel } from "@/components/meta-pixel";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -48,6 +49,7 @@ export default function RootLayout({
         className={`${inter.variable} ${archivoBlack.variable} ${manrope.variable} ${jetbrainsMono.variable} font-sans antialiased bg-cream-50`}
       >
         <MetaPixel />
+        <GoogleAnalytics />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

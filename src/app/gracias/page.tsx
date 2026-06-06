@@ -67,7 +67,10 @@ function GraciasContent() {
 
     // event_id IDÉNTICO al que envía el webhook CAPI: `purchase_${sessionId}`
     // Meta deduplica los dos eventos por event_id (1 conversión, no 2).
-    const win = window as Window & { fbq?: (...args: unknown[]) => void };
+    const win = window as Window & {
+      fbq?: (...args: unknown[]) => void;
+      gtag?: (...args: unknown[]) => void;
+    };
     if (typeof win.fbq === 'function') {
       win.fbq('track', 'Purchase', {
         value: copy.value,
@@ -77,7 +80,27 @@ function GraciasContent() {
         num_items: 1,
       }, { eventID: `purchase_${sessionId}` });
     }
-  }, [sessionId, copy.value, copy.contentId]);
+
+    // GA4: transaction_id = sessionId dedupea con el evento Measurement Protocol
+    // que dispara el webhook server-side. GA4 acepta el primero que llegue.
+    const itemName =
+      purchaseType === 'book' ? '7 Pasos - Libro' :
+      purchaseType === 'bundle' ? '7 Pasos - Bundle' :
+      '7 Pasos - Upgrade App';
+    if (typeof win.gtag === 'function') {
+      win.gtag('event', 'purchase', {
+        transaction_id: sessionId,
+        value: copy.value,
+        currency: 'USD',
+        items: [{
+          item_id: copy.contentId,
+          item_name: itemName,
+          price: copy.value,
+          quantity: 1,
+        }],
+      });
+    }
+  }, [sessionId, copy.value, copy.contentId, purchaseType]);
 
   return (
     <div style={{

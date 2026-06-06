@@ -33,6 +33,17 @@ fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1490294812727730&ev=PageView&noscript=1"/></noscript>
 
+<!-- ============================================
+     GOOGLE ANALYTICS 4
+     ============================================ -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-702RSH626P"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-702RSH626P');
+</script>
+
 <style>
 :root {
   --bg: #0a0a0a;
@@ -1976,10 +1987,23 @@ section {
     return '';
   }
 
+  // GA4 client_id: cookie _ga formato "GA1.1.{p1}.{p2}" → client_id = "p1.p2"
+  // Sin esto, el webhook server-side no puede atribuir la compra a la sesion GA4
+  // original (terminaria como "direct / none" en lugar de google/cpc, organic, etc).
+  function getGaClientId() {
+    var ga = getCookie('_ga');
+    if (!ga) return '';
+    var parts = ga.split('.');
+    if (parts.length < 4) return '';
+    return parts[2] + '.' + parts[3];
+  }
+
   function buildClientRef() {
     var fbp = getFbp();
     var fbc = getFbc();
+    var ga = getGaClientId();
     var parts = [fbp, fbc].filter(Boolean);
+    if (ga) parts.push('ga:' + ga);
     return parts.join('||');
   }
 
@@ -1998,6 +2022,12 @@ section {
   function safePixel(eventName, params, options) {
     try {
       if (typeof fbq === 'function') fbq('track', eventName, params, options);
+    } catch (e) { /* silencioso */ }
+  }
+
+  function safeGtag() {
+    try {
+      if (typeof gtag === 'function') gtag.apply(null, arguments);
     } catch (e) { /* silencioso */ }
   }
 
@@ -2051,7 +2081,23 @@ section {
       num_items: 1,
     }, { eventID: eventId });
 
-    // Dar 150ms para que el Pixel envíe el evento antes de navegar
+    var itemName =
+      product === 'book' ? '7 Pasos - Libro' :
+      product === 'bundle' ? '7 Pasos - Bundle' :
+      '7 Pasos - Upgrade App';
+
+    safeGtag('event', 'begin_checkout', {
+      currency: 'USD',
+      value: value,
+      items: [{
+        item_id: contentId,
+        item_name: itemName,
+        price: value,
+        quantity: 1,
+      }],
+    });
+
+    // Dar 150ms para que el Pixel y GA4 envien el evento antes de navegar
     setTimeout(function () {
       window.location.href = appendClientRef(base);
     }, 150);
