@@ -1,18 +1,18 @@
-# dependencies
-/node_modules
-/.pnp
+# dependencies (matches at any depth - apps/*/node_modules included)
+node_modules
+.pnp
 .pnp.js
 .yarn/install-state.gz
 
 # testing
-/coverage
+coverage
 
-# next.js
-/.next/
-/out/
+# next.js (matches at any depth)
+.next/
+out/
 
 # production
-/build
+build
 
 # misc
 .DS_Store
@@ -32,3 +32,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# editor/tooling cache
+.playwright-mcp/
+.impeccable/
