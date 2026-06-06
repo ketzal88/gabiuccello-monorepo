@@ -1085,6 +1085,42 @@ section {
   letter-spacing: 0.05em;
   line-height: 1.5;
 }
+.offer-cta-mp {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  color: var(--ink-2);
+  padding: 13px 16px;
+  margin-top: 10px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  border: 1px solid #2a4a6e;
+  transition: all 0.2s;
+}
+.offer-cta-mp strong {
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.offer-cta-mp .mp-flag {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  color: #5fb4e8;
+  letter-spacing: 0.12em;
+}
+.offer-cta-mp:hover {
+  background: #009ee3;
+  color: #fff;
+  border-color: #009ee3;
+}
+.offer-cta-mp:hover strong { color: #fff; }
+.offer-cta-mp:hover .mp-flag { color: rgba(255,255,255,0.95); }
 .offer-trust {
   margin-top: 24px;
   display: flex;
@@ -2035,8 +2071,19 @@ section {
         <a href="https://buy.stripe.com/00weVcbnj68A8Nw5ji7IY01"
            class="offer-cta"
            data-product="book"
-           data-value="12.99">
+           data-value="12.99"
+           data-currency="USD">
           Quiero solo el libro &gt;
+        </a>
+
+        <a href="https://mpago.li/21XzPee"
+           class="offer-cta-mp"
+           data-product="book-ars"
+           data-value="18000"
+           data-currency="ARS"
+           aria-label="Pagar en pesos argentinos con Mercado Pago — 18.000 ARS">
+          Pagar en pesos · <strong>$18.000 ARS</strong>
+          <span class="mp-flag">Mercado Pago</span>
         </a>
 
         <p class="offer-upsell-note">
@@ -2107,8 +2154,19 @@ section {
         <a href="https://buy.stripe.com/7sYbJ00IF40sbZIdPO7IY03"
            class="offer-cta"
            data-product="bundle"
-           data-value="19.99">
+           data-value="19.99"
+           data-currency="USD">
           Empezar con todo &gt;
+        </a>
+
+        <a href="https://mpago.li/2w5QZdm"
+           class="offer-cta-mp"
+           data-product="bundle-ars"
+           data-value="28000"
+           data-currency="ARS"
+           aria-label="Pagar en pesos argentinos con Mercado Pago — 28.000 ARS">
+          Pagar en pesos · <strong>$28.000 ARS</strong>
+          <span class="mp-flag">Mercado Pago</span>
         </a>
 
         <p class="offer-upsell-note">
@@ -2361,9 +2419,10 @@ section {
     var link = this;
     var product = link.dataset.product || 'unknown';
     var value = parseFloat(link.dataset.value || '0');
+    var currency = link.dataset.currency || 'USD';
     var contentId =
-      product === 'book' ? '7pasos-libro' :
-      product === 'bundle' ? '7pasos-bundle' :
+      product === 'book' || product === 'book-ars' ? '7pasos-libro' :
+      product === 'bundle' || product === 'bundle-ars' ? '7pasos-bundle' :
       '7pasos-acceso-total';
 
     // Si el link no está configurado todavía, bloqueamos
@@ -2376,23 +2435,26 @@ section {
 
     e.preventDefault();
     var eventId = genEventId('ick');
+    var isStripe = base.indexOf('buy.stripe.com') >= 0;
 
     safePixel('InitiateCheckout', {
       value: value,
-      currency: 'USD',
+      currency: currency,
       content_ids: [contentId],
       content_type: 'product',
       num_items: 1,
+      payment_method: isStripe ? 'stripe' : 'mercadopago',
     }, { eventID: eventId });
 
     var itemName =
-      product === 'book' ? '7 Pasos - Libro' :
-      product === 'bundle' ? '7 Pasos - Bundle' :
+      product === 'book' || product === 'book-ars' ? '7 Pasos - Libro' :
+      product === 'bundle' || product === 'bundle-ars' ? '7 Pasos - Bundle' :
       '7 Pasos - Upgrade App';
 
     safeGtag('event', 'begin_checkout', {
-      currency: 'USD',
+      currency: currency,
       value: value,
+      payment_type: isStripe ? 'stripe' : 'mercadopago',
       items: [{
         item_id: contentId,
         item_name: itemName,
@@ -2401,9 +2463,11 @@ section {
       }],
     });
 
-    // Dar 150ms para que el Pixel y GA4 envien el evento antes de navegar
+    // Dar 150ms para que el Pixel y GA4 envien el evento antes de navegar.
+    // MP no soporta client_reference_id en Payment Links públicos, así que
+    // solo inyectamos las cookies fbp/fbc en los links de Stripe.
     setTimeout(function () {
-      window.location.href = appendClientRef(base);
+      window.location.href = isStripe ? appendClientRef(base) : base;
     }, 150);
   }
 
@@ -2413,8 +2477,8 @@ section {
     // Re-patchear cuando el Pixel haya cargado y seteado _fbp
     setTimeout(patchStripeLinks, 1500);
 
-    // Asignar handler a todos los CTAs que van a Stripe
-    document.querySelectorAll('a[href*="buy.stripe.com"], a[href*="REEMPLAZAR"]').forEach(function (link) {
+    // Asignar handler a todos los CTAs (Stripe + Mercado Pago)
+    document.querySelectorAll('a[href*="buy.stripe.com"], a[href*="mpago.li"], a[href*="REEMPLAZAR"]').forEach(function (link) {
       link.addEventListener('click', handleCheckoutClick);
     });
 
