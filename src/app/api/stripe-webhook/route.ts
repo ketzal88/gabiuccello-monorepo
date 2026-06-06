@@ -38,6 +38,16 @@ const PRODUCT_UPGRADE = 'prod_Ue60nMFZPJrlQy';
 
 type PurchaseType = 'book' | 'bundle' | 'upgrade' | 'unknown';
 
+// Fallback de precio cuando Stripe no manda amount_total > 0
+// (cupón 100% off, payload parcial, etc). Meta exige value > 0 en Purchase.
+// Debe mantenerse sincronizado con COPY en src/app/gracias/page.tsx.
+const FALLBACK_PRICE_USD: Record<PurchaseType, number> = {
+  book: 12.99,
+  bundle: 19.99,
+  upgrade: 10.0,
+  unknown: 19.99,
+};
+
 function verifyStripeSignature(rawBody: string, sigHeader: string, secret: string): boolean {
   const parts: Record<string, string> = {};
   sigHeader.split(',').forEach((part) => {
@@ -264,6 +274,18 @@ export async function POST(req: NextRequest) {
     purchaseType === 'upgrade' ? '7pasos-upgrade-app' :
     '7pasos-acceso-total';
 
+  // Meta exige value numérico > 0 en Purchase. Si Stripe no manda
+  // amount_total válido, usamos el precio público del producto.
+  let purchaseValue = amountTotal / 100;
+  if (!(purchaseValue > 0)) {
+    const fallback = FALLBACK_PRICE_USD[purchaseType];
+    console.warn(
+      `Webhook: amount_total inválido (${amountTotal}) en session ${sessionId}. ` +
+      `Usando fallback ${fallback} ${currency} para purchaseType=${purchaseType}.`
+    );
+    purchaseValue = fallback;
+  }
+
   try {
     const capiRes = await fetch(CAPI_URL, {
       method: 'POST',
@@ -277,7 +299,7 @@ export async function POST(req: NextRequest) {
           event_source_url: SOURCE_URL,
           user_data: userData,
           custom_data: {
-            value: amountTotal / 100,
+            value: purchaseValue,
             currency,
             content_ids: [contentId],
             content_type: 'product',
