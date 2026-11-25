@@ -47,14 +47,21 @@ export interface UserProfile {
   };
 }
 
-// Default to "full" so legacy users (pre-tier) keep their access.
+// Acceso = suscripción activa o regalada. Sin suscripción (signup gratis) o
+// suspendida no hay acceso.
+export function hasAccess(profile: UserProfile | null | undefined): boolean {
+  const status = profile?.subscription?.status;
+  return status === "active" || status === "gifted";
+}
+
+// Una suscripción sin tier es legacy (pre-tier) y vale "full".
 // Backfill script will set explicit "full" for those users.
 export function getTier(profile: UserProfile | null | undefined): SubscriptionTier {
-  return profile?.subscription?.tier ?? "full";
+  return profile?.subscription ? (profile.subscription.tier ?? "full") : "book";
 }
 
 export function isFullTier(profile: UserProfile | null | undefined): boolean {
-  return getTier(profile) === "full";
+  return hasAccess(profile) && getTier(profile) === "full";
 }
 
 // Returns the profile to avoid a separate getUserProfile call
@@ -72,12 +79,13 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
       onboardingPhase: "reading",
     };
     await setDoc(userRef, profile);
-    // Notificar signup al canal de Slack (fire-and-forget, server-side valida el uid).
-    fetch("/api/notify-signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uid: user.uid }),
-    }).catch(() => {});
+    // Notificar signup al canal de Slack (fire-and-forget). El server toma el uid del token.
+    user.getIdToken()
+      .then((token) => fetch("/api/notify-signup", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }))
+      .catch(() => {});
     return profile;
   }
 
@@ -169,7 +177,6 @@ export async function addVictory(
     dayNumber,
     victories: arrayUnion(victory),
     totalVictories: increment(1),
-    notes: "",
   }, { merge: true });
 
   return victory;
