@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// El cliente solo toca su propio perfil y sus subcolecciones.
+// subscription (tier, status) la escriben el webhook de Stripe y el admin con el Admin SDK,
+// que no pasa por estas reglas. Todo lo demás (processedSessions, signupNotifications) queda cerrado.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(
+          ['displayName', 'email', 'createdAt', 'startDate', 'stepsRead', 'onboardingPhase']);
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+          ['displayName', 'stepsRead', 'onboardingPhase']);
+      allow delete: if false;
+
+      match /dailyLogs/{date} {
+        allow read, write: if isOwner(uid);
+      }
+
+      match /objectives/{objectiveId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+  }
+}
