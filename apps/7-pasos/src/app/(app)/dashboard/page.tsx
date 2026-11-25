@@ -219,35 +219,69 @@ function Panel({
   );
 }
 
+// El libro ya no es público: /api/libro valida el ID token y el acceso.
 function DownloadsRow() {
+  const { user } = useAuth();
+  const [busy, setBusy] = useState<"pdf" | "epub" | null>(null);
+  const [error, setError] = useState(false);
+
+  const download = async (format: "pdf" | "epub") => {
+    if (!user || busy) return;
+    setBusy(format);
+    setError(false);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`/api/libro/${format}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `7-pasos-para-cambiar-tu-vida.${format}`;
+      a.click();
+      // Revocar en el mismo tick cancela la descarga en Safari.
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch {
+      setError(true);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const items = [
+    { format: "pdf" as const, title: "Descargar PDF", sub: "Para leer offline" },
+    { format: "epub" as const, title: "Descargar EPUB", sub: "Para Kindle, Apple Books, Kobo" },
+  ];
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      <a
-        href="/libro/7-pasos-para-cambiar-tu-vida.pdf"
-        download
-        className="flex items-center gap-3 rounded-lg border border-brand-line bg-brand-bg-2 p-3 no-underline transition-colors hover:border-brand-line-2"
-      >
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-brand-line">
-          <Download size={15} className="text-brand-ink-2" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-brand-ink leading-tight">Descargar PDF</p>
-          <p className="text-xs text-brand-ink-3">Para leer offline</p>
-        </div>
-      </a>
-      <a
-        href="/libro/7-pasos-para-cambiar-tu-vida.epub"
-        download
-        className="flex items-center gap-3 rounded-lg border border-brand-line bg-brand-bg-2 p-3 no-underline transition-colors hover:border-brand-line-2"
-      >
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-brand-line">
-          <Download size={15} className="text-brand-ink-2" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-brand-ink leading-tight">Descargar EPUB</p>
-          <p className="text-xs text-brand-ink-3">Para Kindle, Apple Books, Kobo</p>
-        </div>
-      </a>
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {items.map((item) => (
+          <button
+            key={item.format}
+            type="button"
+            onClick={() => download(item.format)}
+            disabled={busy !== null}
+            className="flex items-center gap-3 rounded-lg border border-brand-line bg-brand-bg-2 p-3 text-left transition-colors hover:border-brand-line-2 disabled:opacity-60"
+          >
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-brand-line">
+              <Download size={15} className="text-brand-ink-2" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-brand-ink leading-tight">
+                {busy === item.format ? "Descargando..." : item.title}
+              </p>
+              <p className="text-xs text-brand-ink-3">{item.sub}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+      {error && (
+        <p className="text-xs text-brand-ink-3" role="alert">
+          No se pudo descargar. Probá de nuevo en un rato.
+        </p>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * Generates public/libro/7-pasos-para-cambiar-tu-vida.epub
+ * Generates private/libro/7-pasos-para-cambiar-tu-vida.epub (no público: se baja por /api/libro)
  * Run: npx tsx scripts/generate-epub.ts
  */
 
@@ -275,7 +275,7 @@ async function main() {
     zip.file(`OEBPS/${chapter.filename}`, chapter.html);
   }
 
-  const outPath = path.resolve('public/libro/7-pasos-para-cambiar-tu-vida.epub');
+  const outPath = path.resolve('private/libro/7-pasos-para-cambiar-tu-vida.epub');
   const buffer = await zip.generateAsync({
     type: 'nodebuffer',
     compression: 'DEFLATE',
