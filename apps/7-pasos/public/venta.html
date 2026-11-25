@@ -2365,7 +2365,8 @@ section {
     var fbp = getFbp();
     var fbc = getFbc();
     var ga = getGaClientId();
-    var parts = [fbp, fbc].filter(Boolean);
+    // fbp y fbc son posicionales: si falta uno va vacío para que fbc no se lea como fbp.
+    var parts = (fbp || fbc) ? [fbp, fbc] : [];
     if (ga) parts.push('ga:' + ga);
     return parts.join('||');
   }

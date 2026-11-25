@@ -16,7 +16,8 @@ function getCookie(name: string): string {
 export function buildUpgradeUrl(uid: string): string {
   const fbp = getCookie("_fbp");
   const fbc = getCookie("_fbc");
-  const parts = [`uid:${uid}`, fbp, fbc].filter(Boolean);
+  // fbp y fbc son posicionales: si falta uno se manda vacío (no filtrar, o fbc pasa a leerse como fbp).
+  const parts = [`uid:${uid}`, ...(fbp || fbc ? [fbp, fbc] : [])];
   const ref = parts.join("||");
 
   const separator = STRIPE_UPGRADE_LINK.includes("?") ? "&" : "?";
