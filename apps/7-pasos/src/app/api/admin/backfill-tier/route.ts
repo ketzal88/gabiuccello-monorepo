@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
-
-const ADMIN_EMAIL = 'gabriel@worker.ar';
-
-async function verifyAdmin(req: NextRequest): Promise<boolean> {
-  const auth = req.headers.get('Authorization');
-  if (!auth?.startsWith('Bearer ')) return false;
-  try {
-    const decoded = await adminAuth.verifyIdToken(auth.slice(7));
-    return decoded.email === ADMIN_EMAIL;
-  } catch { return false; }
-}
+import { adminDb } from '@/lib/firebase-admin';
+import { verifyAdmin } from '@/lib/admin-auth';
 
 // Asigna tier="full" a todos los usuarios existentes con suscripción activa
 // que todavía no tienen el campo `tier`. Idempotente — se puede correr varias veces.

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { verifyStripeSignature, parseClientRef, escapeHtml } from '@/lib/webhook-utils';
 
 // Variables requeridas en Vercel (Settings → Environment Variables):
 //   STRIPE_WEBHOOK_SECRET       →  whsec_xxx  (Stripe Dashboard → Webhooks)
@@ -14,6 +15,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 //   ADMIN_NOTIFY_EMAIL          →  email del admin (default: gabriel@worker.ar)
 //   SLACK_BOT_TOKEN             →  xoxb-xxx (bot con scope chat:write)
 //   SLACK_BUSINESS_CHANNEL_ID   →  C0AK7HANGQY (#7-pasos)
+//   SLACK_ERROR_CHANNEL_ID      →  canal de alertas cuando falla la entrega del acceso
 //   FIREBASE_ADMIN_CLIENT_EMAIL →  service account client_email
 //   FIREBASE_ADMIN_PRIVATE_KEY  →  service account private_key (con \n literales)
 
@@ -27,13 +29,14 @@ const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'hola@gabiuccello.com';
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFY_EMAIL ?? 'gabriel@worker.ar';
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 const SLACK_CHANNEL = process.env.SLACK_BUSINESS_CHANNEL_ID;
+const SLACK_ERROR_CHANNEL = process.env.SLACK_ERROR_CHANNEL_ID;
 const CAPI_URL = `https://graph.facebook.com/v20.0/${PIXEL_ID}/events`;
 const GA4_MEASUREMENT_ID = 'G-702RSH626P';
 const GA4_MP_URL = `https://www.google-analytics.com/mp/collect?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`;
 const SOURCE_URL = 'https://libro.gabiuccello.com/venta';
 const APP_URL = 'https://libro.gabiuccello.com';
-const PDF_URL = 'https://libro.gabiuccello.com/libro/7-pasos-para-cambiar-tu-vida.pdf';
-const EPUB_URL = 'https://libro.gabiuccello.com/libro/7-pasos-para-cambiar-tu-vida.epub';
+// El PDF/EPUB ya no es público: se descarga desde el dashboard (api/libro, con login).
+const DOWNLOADS_URL = `${APP_URL}/dashboard`;
 
 // Mapa de productos Stripe → tier
 const PRODUCT_BOOK = 'prod_UPH7uh1pVsjGBm';
@@ -52,25 +55,7 @@ const FALLBACK_PRICE_USD: Record<PurchaseType, number> = {
   unknown: 19.99,
 };
 
-function verifyStripeSignature(rawBody: string, sigHeader: string, secret: string): boolean {
-  const parts: Record<string, string> = {};
-  sigHeader.split(',').forEach((part) => {
-    const [k, v] = part.split('=');
-    parts[k] = v;
-  });
-  const t = parts['t'];
-  const v1 = parts['v1'];
-  if (!t || !v1) return false;
-  const expected = crypto
-    .createHmac('sha256', secret)
-    .update(`${t}.${rawBody}`)
-    .digest('hex');
-  try {
-    return crypto.timingSafeEqual(Buffer.from(v1, 'hex'), Buffer.from(expected, 'hex'));
-  } catch {
-    return false;
-  }
-}
+const FETCH_TIMEOUT_MS = 5000;
 
 function sha256hex(value: string): string {
   return crypto.createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
@@ -87,6 +72,7 @@ async function detectPurchaseType(sessionId: string): Promise<PurchaseType> {
     const url = `https://api.stripe.com/v1/checkout/sessions/${sessionId}/line_items?limit=1&expand[]=data.price.product`;
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${STRIPE_SECRET_KEY}` },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
       console.error(`Stripe line_items error (${res.status}):`, await res.text());
@@ -111,29 +97,66 @@ async function detectPurchaseType(sessionId: string): Promise<PurchaseType> {
   }
 }
 
-// Parsea client_reference_id.
-// Formatos soportados (los tokens prefijados pueden aparecer en cualquier orden):
-//   "fbp||fbc"                          (compra inicial)
-//   "fbp||fbc||ga:CLIENT_ID"            (con GA4 client_id)
-//   "uid:UID||fbp||fbc||ga:CLIENT_ID"   (upgrade con GA4)
-// fbp y fbc son posicionales (los unicos sin prefijo).
-function parseClientRef(ref: string): { uid?: string; fbp?: string; fbc?: string; gaClientId?: string } {
-  if (!ref) return {};
-  const parts = ref.split('||');
-  let uid: string | undefined;
-  let gaClientId: string | undefined;
-  const rest: string[] = [];
-  for (const p of parts) {
-    if (p.startsWith('uid:')) uid = p.slice(4);
-    else if (p.startsWith('ga:')) gaClientId = p.slice(3);
-    else rest.push(p);
-  }
-  return { uid, fbp: rest[0], fbc: rest[1], gaClientId };
+// Escribe la suscripción en una transacción:
+// - nunca baja de tier (una suscripción sin tier es legacy = full),
+// - solo pone status 'active' si no había status (respeta una suspensión manual),
+// - si el doc no existe, crea el perfil base.
+async function applyPurchase(
+  uid: string,
+  tier: 'book' | 'full',
+  fields: Record<string, unknown>,
+  profile: { name: string; email: string },
+): Promise<void> {
+  const ref = adminDb.doc(`users/${uid}`);
+  await adminDb.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const current = (snap.data()?.subscription ?? null) as { status?: string; tier?: string } | null;
+    const currentTier = current ? (current.tier ?? 'full') : null;
+    const subscription = {
+      ...(current ?? {}),
+      ...fields,
+      status: current?.status ?? 'active',
+      tier: currentTier === 'full' ? 'full' : tier,
+    };
+    if (snap.exists) {
+      tx.set(ref, { subscription }, { merge: true });
+    } else {
+      tx.set(ref, {
+        displayName: profile.name || '',
+        email: profile.email,
+        createdAt: Timestamp.now(),
+        startDate: Timestamp.now(),
+        stepsRead: [],
+        onboardingPhase: 'reading',
+        subscription,
+      });
+    }
+  });
 }
 
+// Avisa al canal de errores. Solo sessionId y mensaje: nada de datos del comprador.
+async function notifyError(sessionId: string, message: string): Promise<void> {
+  if (!SLACK_BOT_TOKEN || !SLACK_ERROR_CHANNEL) return;
+  try {
+    await fetch('https://slack.com/api/chat.postMessage', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${SLACK_BOT_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        channel: SLACK_ERROR_CHANNEL,
+        text: `🚨 *Stripe webhook 7 Pasos falló* (Stripe va a reintentar)\n🔑 \`${sessionId}\`\n${message}`,
+      }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+  } catch (err) {
+    console.error('Slack error notify falló:', err);
+  }
+}
+
+const HANDLED_EVENTS = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded']);
+
 export async function POST(req: NextRequest) {
-  if (!WEBHOOK_SECRET || !PIXEL_ID || !CAPI_TOKEN) {
-    console.error('Faltan variables de entorno: STRIPE_WEBHOOK_SECRET, META_PIXEL_ID, META_CAPI_ACCESS_TOKEN');
+  if (!WEBHOOK_SECRET) {
+    console.error('Falta STRIPE_WEBHOOK_SECRET');
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
   }
 
@@ -141,7 +164,7 @@ export async function POST(req: NextRequest) {
   const sigHeader = req.headers.get('stripe-signature') ?? '';
 
   if (!verifyStripeSignature(rawBody, sigHeader, WEBHOOK_SECRET)) {
-    console.warn('Stripe webhook: firma inválida');
+    console.warn('Stripe webhook: firma inválida o vencida');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
@@ -152,11 +175,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  if (stripeEvent.type !== 'checkout.session.completed') {
+  if (!HANDLED_EVENTS.has(stripeEvent.type)) {
     return NextResponse.json({ received: true });
   }
 
   const session = stripeEvent.data.object as Record<string, unknown>;
+  // Pagos asincrónicos (transferencia, etc.) llegan con 'unpaid' en completed:
+  // se entregan recién con async_payment_succeeded.
+  const paymentStatus = session.payment_status;
+  if (paymentStatus !== 'paid' && paymentStatus !== 'no_payment_required') {
+    console.log(`Webhook: ${stripeEvent.type} con payment_status=${String(paymentStatus)}, se ignora`);
+    return NextResponse.json({ received: true });
+  }
   const customerDetails = session.customer_details as Record<string, unknown> | null;
   const email = (customerDetails?.email as string) ?? '';
   const name = (customerDetails?.name as string) ?? '';
@@ -168,6 +198,7 @@ export async function POST(req: NextRequest) {
   const amountTotal = typeof session.amount_total === 'number' ? session.amount_total : 0;
   const currency = typeof session.currency === 'string' ? session.currency.toUpperCase() : 'USD';
   const sessionId = typeof session.id === 'string' ? session.id : '';
+  if (!sessionId) return NextResponse.json({ error: 'Missing session id' }, { status: 400 });
   const clientRef = typeof session.client_reference_id === 'string' ? session.client_reference_id : '';
 
   const { uid: upgradeUid, fbp, fbc, gaClientId } = parseClientRef(clientRef);
@@ -178,6 +209,20 @@ export async function POST(req: NextRequest) {
   const firstName = nameParts[0] ?? '';
   const lastName = nameParts.slice(1).join(' ');
 
+  // Idempotencia: Stripe reintenta y manda completed + async_payment_succeeded.
+  // El marcador se escribe después de entregar el acceso, así un fallo de Firebase
+  // deja reintentar.
+  const marker = adminDb.doc(`processedSessions/${sessionId}`);
+  try {
+    if ((await marker.get()).exists) {
+      console.log(`Webhook: session ${sessionId} ya procesada, se ignora`);
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+  } catch (err) {
+    console.error('Firestore marker read error:', err);
+    return NextResponse.json({ error: 'Temporary failure' }, { status: 500 });
+  }
+
   // Detectar producto comprado
   const purchaseType = await detectPurchaseType(sessionId);
   console.log(`Webhook: purchaseType=${purchaseType}, sessionId=${sessionId}, uid=${upgradeUid ?? 'n/a'}`);
@@ -187,26 +232,20 @@ export async function POST(req: NextRequest) {
   let isUpgrade = false;
   let firebaseUid: string | undefined;
 
-  if (purchaseType === 'upgrade' && upgradeUid) {
-    isUpgrade = true;
-    firebaseUid = upgradeUid;
-    try {
-      await adminDb.doc(`users/${upgradeUid}`).set({
-        subscription: {
-          status: 'active',
-          tier: 'full',
-          grantedBy: 'upgrade',
-          upgradeSessionId: sessionId,
-          upgradedAt: Timestamp.now(),
-        },
-      }, { merge: true });
+  // shortcut: upgrade sin uid cae al camino por email con tier full, y unknown
+  // también da full. Si se quiere otra política, decidirla en detectPurchaseType.
+  try {
+    if (purchaseType === 'upgrade' && upgradeUid) {
+      isUpgrade = true;
+      firebaseUid = upgradeUid;
+      await applyPurchase(upgradeUid, 'full', {
+        grantedBy: 'upgrade',
+        upgradeSessionId: sessionId,
+        upgradedAt: Timestamp.now(),
+      }, { name, email });
       console.log(`Firebase: upgrade aplicado a UID ${upgradeUid}`);
-    } catch (err) {
-      console.error('Firebase upgrade error:', err);
-    }
-  } else if (email) {
-    const tier = purchaseType === 'book' ? 'book' : 'full';
-    try {
+    } else if (email) {
+      const tier = purchaseType === 'book' ? 'book' : 'full';
       try {
         const newUser = await adminAuth.createUser({
           email,
@@ -214,48 +253,37 @@ export async function POST(req: NextRequest) {
           emailVerified: true,
         });
         firebaseUid = newUser.uid;
-
-        await adminDb.doc(`users/${firebaseUid}`).set({
-          displayName: name || '',
-          email,
-          createdAt: Timestamp.now(),
-          startDate: Timestamp.now(),
-          stepsRead: [],
-          onboardingPhase: 'reading',
-          subscription: {
-            status: 'active',
-            tier,
-            grantedBy: 'purchase',
-            stripeSessionId: sessionId,
-            purchasedAt: Timestamp.now(),
-          },
-        });
         console.log(`Firebase: usuario creado ${firebaseUid} (tier: ${tier})`);
       } catch (err: unknown) {
-        if ((err as { code?: string }).code === 'auth/email-already-exists') {
-          const existing = await adminAuth.getUserByEmail(email);
-          firebaseUid = existing.uid;
-          if (tier === 'full') {
-            await adminDb.doc(`users/${firebaseUid}`).set({
-              subscription: {
-                status: 'active',
-                tier: 'full',
-                stripeSessionId: sessionId,
-              },
-            }, { merge: true });
-          }
-          console.log(`Firebase: usuario ya existía ${firebaseUid} (tier comprado: ${tier})`);
-        } else {
-          throw err;
-        }
+        if ((err as { code?: string }).code !== 'auth/email-already-exists') throw err;
+        firebaseUid = (await adminAuth.getUserByEmail(email)).uid;
+        console.log(`Firebase: usuario ya existía ${firebaseUid} (tier comprado: ${tier})`);
       }
+      await applyPurchase(firebaseUid, tier, {
+        grantedBy: 'purchase',
+        stripeSessionId: sessionId,
+        purchasedAt: Timestamp.now(),
+      }, { name, email });
 
       loginLink = await adminAuth.generatePasswordResetLink(email, {
         url: `${APP_URL}/login`,
       });
-    } catch (err) {
-      console.error('Firebase Admin error:', err);
     }
+  } catch (err) {
+    // 500 para que Stripe reintente: el cliente pagó y no recibió acceso.
+    console.error('Firebase Admin error:', err);
+    await notifyError(sessionId, `Firebase: ${err instanceof Error ? err.message : String(err)}`);
+    return NextResponse.json({ error: 'Fulfillment failed' }, { status: 500 });
+  }
+
+  try {
+    await marker.create({ processedAt: Timestamp.now(), purchaseType });
+  } catch (err) {
+    // 6 = ALREADY_EXISTS: otra entrega concurrente ya hizo los efectos de abajo.
+    if ((err as { code?: number }).code === 6) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    console.error('Firestore marker write error:', err);
   }
 
   // ── 2. Meta CAPI ─────────────────────────────────────────────────────────
@@ -294,7 +322,9 @@ export async function POST(req: NextRequest) {
     purchaseValue = fallback;
   }
 
-  try {
+  if (!PIXEL_ID || !CAPI_TOKEN) {
+    console.warn('META_PIXEL_ID / META_CAPI_ACCESS_TOKEN no seteados: saltando Meta CAPI');
+  } else try {
     const capiRes = await fetch(CAPI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -317,6 +347,7 @@ export async function POST(req: NextRequest) {
         }],
         access_token: CAPI_TOKEN,
       }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!capiRes.ok) {
       console.error(`Meta CAPI error (${capiRes.status}):`, await capiRes.text());
@@ -365,6 +396,7 @@ export async function POST(req: NextRequest) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(gaPayload),
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });
       // GA4 MP devuelve 204 No Content en éxito. No tiene body.
       if (!mpRes.ok) {
@@ -382,7 +414,7 @@ export async function POST(req: NextRequest) {
   // ── 3. Email + Slack ──────────────────────────────────────────────────────
   await Promise.all([
     email && RESEND_API_KEY
-      ? sendPurchaseEmail(email, name, loginLink, purchaseType, isUpgrade)
+      ? sendPurchaseEmail(email, name, loginLink, purchaseType, isUpgrade, sessionId)
       : Promise.resolve(),
     RESEND_API_KEY
       ? sendAdminSaleEmail({ name, email, amount: amountTotal, currency, sessionId, purchaseType })
@@ -415,6 +447,7 @@ async function notifySlack({ name, email, amount, currency, sessionId, purchaseT
         channel: SLACK_CHANNEL,
         text: `💰 *Nueva venta — 7 Pasos*\n${label} — *$${value} ${currency}*\n👤 ${name || 'Sin nombre'} (${email})\n🔑 \`${sessionId}\``,
       }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     const data = await res.json() as { ok: boolean; error?: string };
     if (!data.ok) console.error('Slack error:', data.error);
@@ -437,8 +470,8 @@ async function sendAdminSaleEmail({ name, email, amount, currency, sessionId, pu
   const html = `<!DOCTYPE html><html><body style="font-family:system-ui,-apple-system,sans-serif;background:#0a0a0a;color:#fafaf5;margin:0;padding:32px;">
     <h2 style="margin:0 0 16px;color:#f97316;">Nueva venta — 7 Pasos</h2>
     <p style="margin:0 0 8px;font-size:18px;"><strong>${label}</strong> — $${value} ${currency}</p>
-    <p style="margin:0 0 4px;">👤 ${name || 'Sin nombre'}</p>
-    <p style="margin:0 0 4px;">✉️ ${email || 'Sin email'}</p>
+    <p style="margin:0 0 4px;">👤 ${escapeHtml(name) || 'Sin nombre'}</p>
+    <p style="margin:0 0 4px;">✉️ ${escapeHtml(email) || 'Sin email'}</p>
     <p style="margin:16px 0 0;font-family:monospace;font-size:12px;color:#8b8b85;">Session: ${sessionId}</p>
   </body></html>`;
 
@@ -455,6 +488,7 @@ async function sendAdminSaleEmail({ name, email, amount, currency, sessionId, pu
         subject,
         html,
       }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
       console.error(`Resend admin notify error (${res.status}):`, await res.text());
@@ -471,9 +505,10 @@ async function sendPurchaseEmail(
   name: string,
   loginLink: string,
   purchaseType: PurchaseType,
-  isUpgrade: boolean
+  isUpgrade: boolean,
+  sessionId: string,
 ): Promise<void> {
-  const firstName = name.split(' ')[0] || 'ahí';
+  const firstName = escapeHtml(name.split(' ')[0] || 'ahí');
 
   // Subject + body según tipo de compra
   let subject = 'Tu acceso a 7 Pasos está listo';
@@ -502,8 +537,8 @@ async function sendPurchaseEmail(
   const downloadsBlock = isUpgrade ? '' : `
         <tr><td style="padding-top:24px;padding-bottom:48px;border-top:1px solid #1f1f1f;">
           <p style="margin:0 0 8px;font-size:13px;color:#525252;">¿Preferís leer offline?</p>
-          <a href="${PDF_URL}" style="font-size:14px;color:#f97316;text-decoration:none;display:block;margin-bottom:6px;">Descargar PDF ↓</a>
-          <a href="${EPUB_URL}" style="font-size:14px;color:#f97316;text-decoration:none;">Descargar EPUB (Kindle / Apple Books) ↓</a>
+          <p style="margin:0 0 8px;font-size:14px;color:#8b8b85;">Descargá el PDF o el EPUB (Kindle / Apple Books) desde tu panel, una vez que entres.</p>
+          <a href="${DOWNLOADS_URL}" style="font-size:14px;color:#f97316;text-decoration:none;">Ir a mis descargas →</a>
         </td></tr>`;
 
   // Para libro-solo, agregamos un sutil upsell
@@ -538,7 +573,7 @@ async function sendPurchaseEmail(
           <p style="margin:0;font-size:15px;color:#8b8b85;line-height:1.6;">${body}</p>
         </td></tr>
         <tr><td style="padding-bottom:40px;">
-          <a href="${loginLink}" style="display:inline-block;background:#f97316;color:#0a0a0a;padding:16px 32px;border-radius:6px;font-size:14px;font-weight:900;text-decoration:none;text-transform:uppercase;letter-spacing:0.04em;">${ctaText}</a>
+          <a href="${escapeHtml(loginLink)}" style="display:inline-block;background:#f97316;color:#0a0a0a;padding:16px 32px;border-radius:6px;font-size:14px;font-weight:900;text-decoration:none;text-transform:uppercase;letter-spacing:0.04em;">${ctaText}</a>
         </td></tr>
         ${downloadsBlock}
         ${upsellBlock}
@@ -564,11 +599,12 @@ async function sendPurchaseEmail(
         subject,
         html,
       }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
       console.error(`Resend error (${res.status}):`, await res.text());
     } else {
-      console.log(`Email enviado a ${to} (tipo: ${purchaseType}, upgrade: ${isUpgrade})`);
+      console.log(`Email de compra enviado (session: ${sessionId}, tipo: ${purchaseType}, upgrade: ${isUpgrade})`);
     }
   } catch (err) {
     console.error('Resend fetch falló:', err);

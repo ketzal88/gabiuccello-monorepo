@@ -1,26 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { verifyAdmin } from '@/lib/admin-auth';
+import { EMAIL_RE, escapeHtml } from '@/lib/webhook-utils';
 
-const ADMIN_EMAIL = 'gabriel@worker.ar';
 const APP_URL = 'https://libro.gabiuccello.com';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_FROM = process.env.RESEND_FROM_EMAIL ?? 'hola@gabiuccello.com';
 
-async function verifyAdmin(req: NextRequest): Promise<boolean> {
-  const auth = req.headers.get('Authorization');
-  if (!auth?.startsWith('Bearer ')) return false;
-  try {
-    const decoded = await adminAuth.verifyIdToken(auth.slice(7));
-    return decoded.email === ADMIN_EMAIL;
-  } catch { return false; }
-}
-
 export async function POST(req: NextRequest) {
   if (!await verifyAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { email, name } = await req.json() as { email: string; name?: string };
-  if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 });
+  const body = await req.json().catch(() => null) as { email?: unknown; name?: unknown } | null;
+  const email = typeof body?.email === 'string' ? body.email.trim() : '';
+  const name = typeof body?.name === 'string' ? body.name.trim() : '';
+  if (!EMAIL_RE.test(email)) return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
 
   let uid: string;
   try {
@@ -37,21 +31,29 @@ export async function POST(req: NextRequest) {
     } else throw err;
   }
 
-  await adminDb.doc(`users/${uid}`).set({
-    displayName: name || '',
-    email,
-    createdAt: Timestamp.now(),
-    startDate: Timestamp.now(),
-    stepsRead: [],
-    onboardingPhase: 'reading',
-    subscription: { status: 'gifted', tier: 'full', grantedBy: 'admin' },
-  }, { merge: true });
+  const subscription = { status: 'gifted', tier: 'full', grantedBy: 'admin' };
+  const ref = adminDb.doc(`users/${uid}`);
+  // Si el usuario ya existe, solo se toca la suscripción: no se pisa su progreso
+  // (stepsRead, onboardingPhase, fechas).
+  if ((await ref.get()).exists) {
+    await ref.set({ subscription }, { merge: true });
+  } else {
+    await ref.set({
+      displayName: name,
+      email,
+      createdAt: Timestamp.now(),
+      startDate: Timestamp.now(),
+      stepsRead: [],
+      onboardingPhase: 'reading',
+      subscription,
+    });
+  }
 
   const loginLink = await adminAuth.generatePasswordResetLink(email, { url: `${APP_URL}/login` });
 
   if (RESEND_API_KEY) {
-    const firstName = name?.split(' ')[0] || 'ahí';
-    await fetch('https://api.resend.com/emails', {
+    const firstName = escapeHtml(name.split(' ')[0] || 'ahí');
+    const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
           <p style="margin:0;font-size:15px;color:#8b8b85;line-height:1.6;">Hacé click abajo para crear tu contraseña y acceder al sistema.</p>
         </td></tr>
         <tr><td style="padding-bottom:40px;">
-          <a href="${loginLink}" style="display:inline-block;background:#f97316;color:#0a0a0a;padding:16px 32px;border-radius:6px;font-size:14px;font-weight:900;text-decoration:none;text-transform:uppercase;letter-spacing:0.04em;">Crear contraseña y entrar →</a>
+          <a href="${escapeHtml(loginLink)}" style="display:inline-block;background:#f97316;color:#0a0a0a;padding:16px 32px;border-radius:6px;font-size:14px;font-weight:900;text-decoration:none;text-transform:uppercase;letter-spacing:0.04em;">Crear contraseña y entrar →</a>
         </td></tr>
         <tr><td>
           <p style="margin:0;font-size:12px;color:#525252;line-height:1.6;">Gabi Uccello · libro.gabiuccello.com</p>
@@ -84,8 +86,16 @@ export async function POST(req: NextRequest) {
   </table>
 </body></html>`,
       }),
+      signal: AbortSignal.timeout(5000),
+    }).catch((err: unknown) => {
+      console.error('grant-access: Resend fetch falló:', err);
+      return null;
     });
+    if (!res?.ok) {
+      console.error(`grant-access: mail no enviado (${res?.status ?? 'sin respuesta'})`);
+      return NextResponse.json({ ok: true, uid, emailSent: false });
+    }
   }
 
-  return NextResponse.json({ ok: true, uid });
+  return NextResponse.json({ ok: true, uid, emailSent: Boolean(RESEND_API_KEY) });
 }

@@ -91,7 +91,7 @@ export default function AdminPage() {
     );
   }
 
-  const activeCount = users.filter((u) => u.subscription?.status !== "suspended").length;
+  const activeCount = users.filter((u) => u.subscription?.status === "active" || u.subscription?.status === "gifted").length;
   const purchasedCount = users.filter((u) => u.subscription?.grantedBy === "purchase").length;
   const giftedCount = users.filter((u) => u.subscription?.grantedBy === "admin").length;
   const trackingCount = users.filter((u) => u.onboardingPhase === "tracking").length;
@@ -228,7 +228,7 @@ function UserRow({
   user: AdminUser;
   onToggle: (uid: string, status: string) => void;
 }) {
-  const status = user.subscription?.status || "active";
+  const status = user.subscription?.status || "none";
   const grantedBy = user.subscription?.grantedBy;
   const phase = user.onboardingPhase || "reading";
 
@@ -253,7 +253,7 @@ function UserRow({
       })
     : "—";
 
-  const isActive = status !== "suspended";
+  const isActive = status === "active" || status === "gifted";
 
   return (
     <tr className="border-b border-stone-50 hover:bg-stone-50/50 transition-colors">
@@ -269,11 +269,13 @@ function UserRow({
                 ? "bg-red-50 text-red-600"
                 : status === "gifted"
                 ? "bg-blue-50 text-blue-600"
-                : "bg-green-50 text-green-700"
+                : status === "active"
+                ? "bg-green-50 text-green-700"
+                : "bg-stone-100 text-stone-500"
             }`}
           >
             <span className="text-[8px]">●</span>
-            {status === "suspended" ? "Suspendido" : status === "gifted" ? "Regalo" : "Activo"}
+            {status === "suspended" ? "Suspendido" : status === "gifted" ? "Regalo" : status === "active" ? "Activo" : "Sin acceso"}
           </span>
           {grantedBy === "purchase" && (
             <span className="text-xs text-stone-400 bg-stone-50 px-1.5 py-0.5 rounded-md">Stripe</span>
@@ -310,7 +312,7 @@ function UserRow({
               : "text-green-600 hover:bg-green-50"
           }`}
         >
-          {isActive ? "Suspender" : "Reactivar"}
+          {isActive ? "Suspender" : status === "none" ? "Activar" : "Reactivar"}
         </button>
       </td>
     </tr>

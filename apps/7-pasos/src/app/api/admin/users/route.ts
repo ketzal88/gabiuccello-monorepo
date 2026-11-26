@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
-
-const ADMIN_EMAIL = 'gabriel@worker.ar';
-
-async function verifyAdmin(req: NextRequest): Promise<boolean> {
-  const auth = req.headers.get('Authorization');
-  if (!auth?.startsWith('Bearer ')) return false;
-  try {
-    const decoded = await adminAuth.verifyIdToken(auth.slice(7));
-    return decoded.email === ADMIN_EMAIL;
-  } catch { return false; }
-}
+import { adminDb } from '@/lib/firebase-admin';
+import { verifyAdmin } from '@/lib/admin-auth';
 
 export async function GET(req: NextRequest) {
   if (!await verifyAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -24,7 +14,8 @@ export async function GET(req: NextRequest) {
       email: data.email ?? '',
       onboardingPhase: data.onboardingPhase ?? 'reading',
       stepsRead: data.stepsRead ?? [],
-      subscription: data.subscription ?? { status: 'active' },
+      // Sin suscripción = sin acceso (antes se mostraba como activo).
+      subscription: data.subscription ?? { status: 'none' },
       createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
       startDate: data.startDate?.toDate?.()?.toISOString() ?? null,
     };
